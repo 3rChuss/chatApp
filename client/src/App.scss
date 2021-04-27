@@ -1,0 +1,15 @@
+$blue: #1877f2;
+$green: #42b72a;
+$border-radius: 0;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300&display=swap');
+@import "~bootstrap/scss/bootstrap";
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    background: #f0f2f5;
+}

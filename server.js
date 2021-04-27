@@ -3,12 +3,13 @@ const { ApolloServer } = require("apollo-server");
 const { sequelize } = require('./models');
 
 // A map of functions which return data for the schema.
-const resolvers = require('./grapqhql/resolver');
+const resolvers = require('./grapqhql/resolvers');
 const typeDefs = require("./grapqhql/typeDefs");
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  context: (ctx) => ctx
 });
 
 server.listen().then(({ url }) => {
