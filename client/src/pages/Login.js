@@ -3,6 +3,8 @@ import { Row, Col, Form, Button } from "react-bootstrap";
 import { gql, useLazyQuery } from "@apollo/client";
 import { Link } from 'react-router-dom';
 
+import { useAtuhDispatch } from "../context/auth";
+
 const LOGIN_USER = gql`
   query login(
     $emailOrPhone: String!
@@ -27,10 +29,14 @@ export default function Login(props) {
 
   const [errors, setErrors] = useState({});
 
+  const dispatch = useAtuhDispatch();
+
   const [loginUser, { loading }] = useLazyQuery(LOGIN_USER, {
-    onError: (err) => setErrors(err.graphQLErrors[0].extensions.errors),
-      onCompleted: (data) => {
-          props.history.push('/');
+    onError: (err) =>
+      setErrors(err.graphQLErrors[0].extensions.errors),
+    onCompleted: (data) => {
+        dispatch({type: 'LOGIN', payload: data.login})
+        props.history.push('/');
       }
   });
 
@@ -51,7 +57,7 @@ export default function Login(props) {
               <Form.Control
                 required
                 className={errors.username && "is-invalid"}
-                type="email"
+                type="text"
                 value={variables.username}
                 onChange={(e) =>
                   setVariables({ ...variables, emailOrPhone: e.target.value })

@@ -1,22 +1,43 @@
 const bcrypt = require("bcryptjs");
 const { UserInputError, AuthenticationError } = require("apollo-server");
-const { User } = require('../../models');
+const { User, Message } = require('../../models');
 const { Op } = require("sequelize");
 
 module.exports = {
     Query: {
-        getUsers: async (_, __, context) => {
+        getUsers: async ( _, __, { user } ) => {
             try {
-                let user;
-                if (context.req && context.req.headers.username) {
-                    user = context.req.headers.username;
-                } else {
-                    throw new AuthenticationError('Unauthenticated');
-                }
-                const users = await User.findAll({
-                    where: {username: {[Op.ne]: user}}
+
+                if (!user) throw new AuthenticationError("Unauthenticated");
+
+                let users = await User.findAll({
+                  attributes: [
+                    "username",
+                    "imageUrl",
+                    "createdAt",
+                    "phone",
+                  ],
+                  where: { username: { [Op.ne]: user } },
                 });
+
+                const allUserMessages = await Message.findAll({
+                  where: {
+                    [Op.or]: [{ from: user }, { to: user }],
+                  },
+                  order: [["createdAt", "DESC"]],
+                });
+                
+                users = users.map(otherUser => {
+                    const latestMessages = allUserMessages.find((m) =>
+                          m.from === otherUser.username ||
+                          m.to === otherUser.username
+                    );
+                    otherUser.latestMessage = latestMessages;
+                    return otherUser;
+                })
+
                 return users;
+
             } catch (err) {
                 throw err;
             }

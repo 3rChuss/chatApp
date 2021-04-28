@@ -45,7 +45,15 @@ module.exports = (sequelize, DataTypes) => {
       sequelize,
       modelName: "User",
       tableName: "users",
-    }
+    },
+    {
+      hooks: {
+        beforeCreate: function (user) {
+          user.email = user.email.toLowerCase();
+          return user;
+        }
+      },
+    },
   );
   return User;
 };
