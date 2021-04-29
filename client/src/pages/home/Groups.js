@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { gql, useQuery } from "@apollo/client";
-import { Button, Card, Col, Modal } from "react-bootstrap";
+import { gql, useQuery, useMutation } from "@apollo/client";
+import { Button, Card, Col, Modal, Form } from "react-bootstrap";
 
 import { useMessageDispatch, useMessageState } from "../../context/message";
 
@@ -19,16 +19,22 @@ const GET_GROUPS = gql`
 `;
 
 
+
 export default function Groups() {
 
-    const [show, setShow] = useState(false);
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const handleClose = () => {
+    setShowDetails(false);
+    setShowCreateGroup(false);
+  }
     
     const dispatch = useMessageDispatch();
     const { users, groups } = useMessageState();
   const selectedGroup = groups?.find((u) => u.selected === true);
-  console.log(groups);
+
+  const usersInGroup = groups?.map(u => u.participants);
+
     
     const { loading } = useQuery(GET_GROUPS, {
         onCompleted: (data) =>
@@ -36,15 +42,17 @@ export default function Groups() {
         onError: (err) => console.log(err),
     });
 
-    const Modala = () => {
+    const GroupDetails = () => {
         return (
-          <Modal show={show} onHide={handleClose}>
+          <Modal show={showDetails} onHide={handleClose}>
             <Modal.Header closeButton>
               <Modal.Title>Time is ending :/</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              So hope, you can value it! :D
-               I have chosen the wrong database /i think/, just around 14:00 I found i was wrong with the schemas 😢
+              So hope, you can value it! just around 14:00 I found i was wrong
+              with the program approach - schemas - 😢
+              <br />
+              Joined: {usersInGroup?.map((u) => u)}
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleClose}>
@@ -55,7 +63,7 @@ export default function Groups() {
               </Button>
             </Modal.Footer>
           </Modal>
-        )
+        );
     }
 
 
@@ -83,7 +91,7 @@ export default function Groups() {
                       <a
                         role="button"
                         className="dark float-right"
-                        onClick={handleShow}
+                        onClick={() => setShowDetails(!showDetails)}
                       >
                         {"👁‍🗨"}
                       </a>
@@ -107,11 +115,14 @@ export default function Groups() {
         });
     }
 
+
     return (
-        <Col className="px-0">
-            <Modala />
+      <Col className="px-0">
+        <GroupDetails />
         {usersMarkup}
-        <Button >Add Group</Button>
+        <Button>
+          Add Group
+        </Button>
       </Col>
     );
 }
