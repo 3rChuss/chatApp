@@ -16,9 +16,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      admin: {
-        type: DataTypes.STRING,
-        allowNull: false
+      type: {
+        type: DataTypes.ENUM("private", "group"),
+        allowNull: false,
       },
       participants: {
         type: DataTypes.STRING,

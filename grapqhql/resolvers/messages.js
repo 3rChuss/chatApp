@@ -37,7 +37,7 @@ module.exports = {
         },
     },
     Mutation: {
-        sendMessage: async (_, { to, content }, { user }) => {
+        sendMessage: async (_, { to, type, content }, { user }) => {
             try {
                 const recipient = await User.findOne({ where: { username: to } });
 
@@ -50,6 +50,7 @@ module.exports = {
 
                 const message = await Message.create({
                     from: user,
+                    type,
                     to,
                     content,
                 });

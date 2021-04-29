@@ -15,7 +15,7 @@ body {
 }
 
 .user-div:hover{
-    background-color: rgba(245, 197, 197, 0.9);
+    background-color: rgba(245, 197, 197, 0.9) !important;
     transition: all ease-in-out .1s;
 }
 
@@ -47,6 +47,17 @@ body {
 .output{
     p, h1, h2, h3 {
         margin: 0;
+    }
+}
+
+.nav-tabs {
+    margin-top: -2rem !important;
+}
+
+.card-body{
+        p {
+        padding: 0 !important;
+        margin: 0 !important;
     }
 }
 

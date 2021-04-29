@@ -10,14 +10,14 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate({Conversation, User}) {
-      // this.belongsTo(Conversation, {
-      //   foreignKey: 'conversationId',
-      //   as: 'conversation',
-      // });
-      // this.belongsTo(User, {
-      //   foreignKey: 'from',
-      //   as: 'user'
-      // });
+      this.belongsTo(Conversation, {
+        foreignKey: 'uuid',
+        as: 'conversation',
+      });
+      this.belongsTo(User, {
+        foreignKey: 'from',
+        as: 'user'
+      });
     }
   };
   Message.init(

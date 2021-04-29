@@ -11,8 +11,9 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
       },
-      admin: {
-        type: Sequelize.STRING,
+      type: {
+        type: Sequelize.ENUM("private", "group"),
+        allowNull: false,
       },
       participants: {
         type: Sequelize.STRING,

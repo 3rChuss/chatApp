@@ -1,5 +1,5 @@
-import React, { Fragment, useEffect } from 'react';
-import { Row, Button } from 'react-bootstrap';
+import React, { Fragment, useEffect, useState } from "react";
+import { Row, Col, Button, Tab, Tabs, TabContainer } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { gql, useSubscription } from '@apollo/client';
 
@@ -9,6 +9,7 @@ import { useMessageDispatch } from "../../context/message";
 //components
 import Users from './Users';
 import Messages from './Messages';
+import Groups from "./Groups";
 
 const NEW_MESSAGE = gql`
   subscription newMessage{
@@ -22,6 +23,7 @@ const NEW_MESSAGE = gql`
 
 export default function Home({ history }) {
 
+  const [key, setKey] = useState("chat");
   const authDispatch = useAtuhDispatch();
   const messageDispatch = useMessageDispatch();
   const { user } = useAtuhState();
@@ -65,7 +67,22 @@ export default function Home({ history }) {
         </Button>
       </Row>
       <Row className="bg-light pt-5 mt-2">
-        <Users />
+        <Col xs={3} sm={4}>
+          <TabContainer>
+            <Tabs
+              defaultActiveKey="chat"
+              activeKey={key}
+              onSelect={(k) => setKey(k)}
+            >
+              <Tab eventKey="chat" title="Chat">
+                <Users />
+              </Tab>
+              <Tab eventKey="groups" title="Groups">
+                <Groups />
+              </Tab>
+            </Tabs>
+          </TabContainer>
+        </Col>
         <Messages />
       </Row>
     </Fragment>

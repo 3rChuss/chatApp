@@ -74,7 +74,7 @@ export default function Users() {
   }
 
   return (
-    <Col xs={2} md={4} className="px-0">
+    <Col className="px-0">
       {usersMarkup}
     </Col>
   );

@@ -48,7 +48,24 @@ const messageReducer = (state, action) => {
         ...state,
         users: usersCopy,
       }
+    
+    case "SET_GROUPS":
+      return {
+        ...state,
+        groups: action.payload,
+      }
 
+    case "SET_SELECTED_GROUP":
+      usersCopy = state.groups.map((group) => ({
+        ...group,
+        selected: group.id === action.payload,
+      }));
+      return {
+        ...state,
+        groups: usersCopy,
+      };
+
+      
     default:
       throw new Error(`unknown action type: ${action.type}`);
   }

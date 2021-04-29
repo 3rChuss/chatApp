@@ -24,11 +24,9 @@ module.exports = gql`
   type Group {
     id: String!
     name: String!
-    admin: String!
     participants: String!
     createdAt: String
     latestMessage: Message
-    adminUser: User!
   }
   type GroupParticipants {
     groupId: String!
@@ -38,8 +36,8 @@ module.exports = gql`
     getUsers: [User]!
     login(emailOrPhone: String!, password: String!): User!
     getMessages(from: String!): [Message]!
-    # getGroups: [Group]!
-    # getGroupMessages(conversationId: String!): [Message]!
+    getGroups: [Group]!
+    getGroupMessages(conversationId: String!): [Message]!
   }
   type Mutation {
     register(

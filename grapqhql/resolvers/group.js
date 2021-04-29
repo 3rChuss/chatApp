@@ -7,49 +7,46 @@ module.exports = {
         getGroups: async (_, __, { user }) => {
             try {
                 let groupConversations = await Conversation.findAll({
-                    include: [
-                        {
-                            model: User,
-                            as: "adminUser",
-                            attributes: ["id", "username"],
-                        },
-                    ],
+                  include: [
+                    {
+                      model: User,
+                      as: "adminUser",
+                      attributes: ["id", "username"],
+                    },
+                  ],
                 });
 
-                const groupConversationsUpdated = groupConversations.map((u) => {
+                //Getting the groups where the user is include
+                let groupConversationsUpdated = groupConversations.filter((u) => {
                     let conversations;
-                    if (u.participants.includes(user)) {
+                    const usersInConversation = u.participants
+                      .split(",")
+                        .map((s) => s.trim());
+
+                    if (usersInConversation.includes(user)) {
                         conversations = Object.assign(u);
-                        return conversations;
+                      return conversations;
                     }
                 });
 
+
                 const groupMessages = await Message.findAll({
-                    include: [
-                        {
-                            model: Conversation,
-                            as: "conversation",
-                            attributes: [],
-                        },
-                        {
-                            model: User,
-                            as: "user",
-                            attributes: ["username"],
-                        },
-                    ],
                     order: [["createdAt", "DESC"]],
                 });
 
-                //console.log(groupMessages);
-
-
-                groupConversations = groupConversations.map((groupConv) => {
-                    const latestMessage = groupMessages.find(
-                      (message) => message.uuid === groupConv.id
-                    );
-                    groupConv.latestMessage = latestMessage;
+                groupConversationsUpdated = groupConversationsUpdated.map(
+                    (groupConv) => {
+                    let latestMessage = groupMessages.find(
+                        (message) => {
+                            return (
+                              message.from === user
+                            );
+                        }
+                        );
+                        groupConv.latestMessage = latestMessage;
                     return groupConv;
-                });
+                  }
+                );
 
                 return groupConversations;
             } catch (err) {

@@ -28,10 +28,12 @@ const GET_MESSAGES = gql`
 
 export default function Messages() {
   const dispatch = useMessageDispatch();
-  const { users } = useMessageState();
+  const { users, groups } = useMessageState();
   const [content, setContent] = useState('');
 
   const selectedUser = users?.find(u => u.selected === true);
+  const selectedGroup = groups?.find(g => g.selected === true);
+  const groupMessages = selectedGroup?.messages;
   const messages = selectedUser?.messages;
 
   const [
@@ -52,8 +54,8 @@ export default function Messages() {
   const submitMessage = e => {
     e.preventDefault();
     if (content === "") return
-    // mutation for send messages
-    sendMessage({ variables: { to: selectedUser.username, content } });
+    // mutation for sending messages
+    sendMessage({ variables: { to: selectedUser.username, type: 'private', content } });
     setContent("");
   }
 
@@ -91,7 +93,7 @@ export default function Messages() {
   }
 
   return (
-    <Col xs={10} md={8}>
+    <Col xs={9} sm={8}>
       <div className="p-3 bg-white messages-box d-flex flex-column-reverse">
         {selectedChatMarkup}
       </div>
