@@ -60,4 +60,10 @@ body {
         margin: 0 !important;
     }
 }
+a{
+    color: rgb(171, 177, 119) !important;
+    &:hover {
+        color:rgba(0, 0, 0, 0.9) !important;
+    }
+}
 

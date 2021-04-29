@@ -4,7 +4,7 @@ import { useAtuhState } from '../../context/auth';
 
 export default function Message({ message }) {
     const { user } = useAtuhState();
-    const sent = message.from === user;
+  const sent = message.from === user;
 
     return (
       <div

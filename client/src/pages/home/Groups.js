@@ -27,7 +27,8 @@ export default function Groups() {
     
     const dispatch = useMessageDispatch();
     const { users, groups } = useMessageState();
-    const selectedGroup = groups?.find((u) => u.selected === true);
+  const selectedGroup = groups?.find((u) => u.selected === true);
+  console.log(groups);
     
     const { loading } = useQuery(GET_GROUPS, {
         onCompleted: (data) =>
@@ -39,17 +40,18 @@ export default function Groups() {
         return (
           <Modal show={show} onHide={handleClose}>
             <Modal.Header closeButton>
-              <Modal.Title>Modal heading</Modal.Title>
+              <Modal.Title>Time is ending :/</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              Woohoo, you're reading this text in a modal!
+              So hope, you can value it! :D
+               I have chosen the wrong database /i think/, just around 14:00 I found i was wrong with the schemas 😢
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleClose}>
-                Close
+                Say Bye to Jesus
               </Button>
               <Button variant="primary" onClick={handleClose}>
-                Save Changes
+                Save Jesus
               </Button>
             </Modal.Footer>
           </Modal>
