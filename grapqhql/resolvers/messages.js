@@ -66,8 +66,7 @@ module.exports = {
     Subscription: {
         newMessage: {
             subscribe: withFilter(
-                (_, __, { pubsub, user }) => {
-                    console.log(newMessage);
+                (_, __, { user }) => {
                     if (!user) throw new AuthenticationError("Unauthenticated");
                     return pubsub.asyncIterator(["NEW_MESSAGE"]);
                 },
@@ -80,7 +79,7 @@ module.exports = {
                     }
 
                     return false;
-                }
+                },
             ),
         },
     },

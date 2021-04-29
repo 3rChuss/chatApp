@@ -52,9 +52,9 @@ export default function Messages() {
   const submitMessage = e => {
     e.preventDefault();
     if (content === "") return
-    setContent("");
     // mutation for send messages
     sendMessage({ variables: { to: selectedUser.username, content } });
+    setContent("");
   }
 
 

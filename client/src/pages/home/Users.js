@@ -61,9 +61,9 @@ export default function Users() {
           <div className="d-none d-md-block ml-2">
             <p className="text-success m-0">{user.username}</p>
             <small>
-              {user.latestMessage ? (
-                user.latestMessage.content
-              ) : (
+              {user.latestMessage && user.latestMessage.to === user.username ? (
+                `${user.latestMessage.content} < you`
+              ) : ( user.latestMessage && user.latestMessage.to !== user.username ? `${user.latestMessage.content} < ${user.latestMessage.to}` :
                 <p>Click to send a message</p>
               )}
             </small>

@@ -17,10 +17,29 @@ module.exports = gql`
     to: String!
     createdAt: String!
   }
+  type MsgGroupUser {
+    id: String!
+    username: String!
+  }
+  type Group {
+    id: String!
+    name: String!
+    admin: String!
+    participants: String!
+    createdAt: String
+    latestMessage: Message
+    adminUser: User!
+  }
+  type GroupParticipants {
+    groupId: String!
+    participants: String!
+  }
   type Query {
     getUsers: [User]!
     login(emailOrPhone: String!, password: String!): User!
     getMessages(from: String!): [Message]!
+    # getGroups: [Group]!
+    # getGroupMessages(conversationId: String!): [Message]!
   }
   type Mutation {
     register(
@@ -31,6 +50,9 @@ module.exports = gql`
       confirmPassword: String!
     ): User!
     sendMessage(to: String!, content: String!): Message!
+    sendGroupMessage(conversationId: String!, content: String!): Message!
+    createGroup(name: String!, participants: String!): Group!
+    addGroupUser(conversationId: String!, participants: String!): GroupParticipants!
   }
   type Subscription {
     newMessage: Message!

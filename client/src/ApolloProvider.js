@@ -11,7 +11,7 @@ import { WebSocketLink } from "@apollo/client/link/ws";
 
 import { setContext } from "@apollo/client/link/context";
 
-let  httpLink = createHttpLink({
+let httpLink = createHttpLink({
   uri: "http://localhost:4000",
 });
 
