@@ -2,43 +2,65 @@ const { gql } = require('apollo-server');
 
 // The GraphQL schema
 module.exports = gql`
+  enum AddOrDelete {
+    ADD
+    DELTE
+  }
+
   type User {
+    id: ID!
     username: String!
     email: String
     phone: String!
-    createdAt: String!
     imageUrl: String
     latestMessage: Message
   }
-  type Message {
-    uuid: String!
-    content: String!
-    from: String!
-    to: String!
-    createdAt: String!
-  }
   type MsgGroupUser {
-    id: String!
+    id: ID!
     username: String!
   }
+  type Message {
+    id: ID!
+    content: String!
+    conversationId: ID!
+    senderId: ID!
+    createdAt: String!
+    user: MsgGroupUser
+  }
+  type subMessage {
+    message: Message!
+    type: String!
+    participants: [ID!]!
+  }
   type Group {
-    id: String!
+    id: ID!
     name: String!
-    participants: String!
-    createdAt: String
+    admin: ID!
+    type: String!
+    participants: [ID!]!
+    createdAt: String!
     latestMessage: Message
+    adminUser: MsgGroupUser
+  }
+  type GroupName {
+    groupId: ID!
+    name: String!
   }
   type GroupParticipants {
-    groupId: String!
-    participants: String!
+    groupId: ID!
+    participants: [ID!]!
   }
+
   type Query {
-    getUsers: [User]!
     login(emailOrPhone: String!, password: String!): User!
-    getMessages(from: String!): [Message]!
+
+    getUsers: [User]!
     getGroups: [Group]!
-    getGroupMessages(conversationId: String!): [Message]!
+
+    getPrivateMessages(userId: ID!): [Message]!
+    getGroupMessages(conversationId: ID!): [Message]!
   }
+
   type Mutation {
     register(
       username: String!
@@ -47,12 +69,17 @@ module.exports = gql`
       password: String!
       confirmPassword: String!
     ): User!
-    sendMessage(to: String!, content: String!): Message!
-    sendGroupMessage(conversationId: String!, content: String!): Message!
-    createGroup(name: String!, participants: String!): Group!
-    addGroupUser(conversationId: String!, participants: String!): GroupParticipants!
+
+    sendPrivateMessage(receiverId: ID!, content: String!): Message!
+    sendGroupMessage(conversationId: ID!, content: String!): Message!
+
+    createGroup(name: String!, participants: [ID!]): Group!
+    addGroupUser(
+      conversationId: String!
+      participants: [ID]!
+    ): GroupParticipants!
   }
   type Subscription {
-    newMessage: Message!
+    newMessage: subMessage!
   }
 `;

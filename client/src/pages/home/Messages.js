@@ -1,35 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Form } from 'react-bootstrap';
-import { gql, useLazyQuery, useMutation } from "@apollo/client";
-import { useMessageDispatch, useMessageState } from "../../context/message";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { useMessageDispatch, useMessageState } from "../../context/states";
+import { GET_PRIVATE_MESSAGES, SEND_MESSAGE } from "../../graphql/messages";
 
 import Message from './Message';
 import { Fragment } from 'react';
 
-const SEND_MESSAGE = gql`
-  mutation sendMessage($to: String!, $content: String!){
-    sendMessage(to: $to, content: $content){
-      uuid from to content createdAt
-    }
-  }
-`;
-
-const GET_MESSAGES = gql`
-  query getMessages($from: String!) {
-    getMessages(from: $from) {
-      uuid
-      from
-      to
-      content
-      createdAt
-    }
-  }
-`;
 
 export default function Messages() {
   const dispatch = useMessageDispatch();
   const { users, groups } = useMessageState();
   const [content, setContent] = useState('');
+
 
   const selectedUser = users?.find(u => u.selected === true);
   const selectedGroup = groups?.find(g => g.selected === true);
@@ -37,9 +20,9 @@ export default function Messages() {
   const messages = selectedUser?.messages;
 
   const [
-    getMessages,
+    getPrivateMessages,
     { loading: messagesLoading, data: messagesData },
-  ] = useLazyQuery(GET_MESSAGES);
+  ] = useLazyQuery(GET_PRIVATE_MESSAGES);
 
   const [sendMessage] = useMutation(SEND_MESSAGE, {
     onError: (err) => console.log(err),
@@ -47,7 +30,7 @@ export default function Messages() {
 
   useEffect(() => {
     if (selectedUser && !selectedUser.messages) {
-      getMessages({ variables: { from: selectedUser.username } });
+      getPrivateMessages({ variables: { userId: selectedUser.id } });
     }
   }, [selectedUser]);
 
@@ -80,7 +63,7 @@ export default function Messages() {
   } else if (messages.length > 0) {
     selectedChatMarkup = messages.map((message, index) => (
       <Fragment key={index}>
-        <Message key={message.uuid} message={message} />
+        <Message key={message.id} message={message} />
         {index === messages.length - 1 &&
           (<div className="invisible"><hr className="m-0" /></div>)
         }

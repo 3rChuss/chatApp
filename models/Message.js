@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate({Conversation, User}) {
       this.belongsTo(Conversation, {
-        foreignKey: 'uuid',
-        as: 'conversation',
+        foreignKey: "conversationId",
+        as: "conversation",
       });
       this.belongsTo(User, {
-        foreignKey: 'from',
+        foreignKey: 'senderId',
         as: 'user'
       });
     }
@@ -26,22 +26,18 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      uuid: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        allowNull: false,
+      conversationId: {
+        type: DataTypes.INTEGER,
+        allowNull:false
       },
-      from: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      to: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+      senderId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+      }
     },
     {
       sequelize,
+      freezeTableName: true,
       modelName: "Message",
       tableName: "messages",
     }

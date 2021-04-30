@@ -11,12 +11,15 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
       },
+      admin: {
+        type: Sequelize.INTEGER
+      },
       type: {
         type: Sequelize.ENUM("private", "group"),
         allowNull: false,
       },
       participants: {
-        type: Sequelize.STRING,
+        type: Sequelize.ARRAY(Sequelize.INTEGER)
       },
       createdAt: {
         allowNull: false,
@@ -28,7 +31,7 @@ module.exports = {
       },
     });
   },
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.dropTable('conversations');
   }
 };

@@ -4,14 +4,14 @@ import { Route, Redirect } from 'react-router-dom';
 import { useAtuhState } from '../context/auth';
 
 export default function DynamicRoute(props) {
-    const { user } = useAtuhState();
+    const { username } = useAtuhState();
     
-    if (props.auth && !user){
-        return <Redirect to='/login'/>
-    } else if (props.guest && user) {
-        return <Redirect to='/' />
+    if (props.auth && !username) {
+      return <Redirect to="/login" />;
+    } else if (props.guest && username) {
+      return <Redirect to="/" />;
     } else {
-        return <Route component={props.component} {...props} />
+      return <Route component={props.component} {...props} />;
     }
 }
 

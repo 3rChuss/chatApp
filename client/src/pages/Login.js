@@ -1,27 +1,14 @@
 import React, { useState } from "react";
 import { Row, Col, Form, Button } from "react-bootstrap";
-import { gql, useLazyQuery } from "@apollo/client";
+import { useLazyQuery } from "@apollo/client";
 import { Link } from 'react-router-dom';
 
+import { LOGIN_USER } from '../graphql/users';
 import { useAtuhDispatch } from "../context/auth";
 
-const LOGIN_USER = gql`
-  query login(
-    $emailOrPhone: String!
-    $password: String!
-  ) {
-    login(
-      emailOrPhone: $emailOrPhone
-      password: $password
-    ) {
-      username
-      email
-      createdAt
-    }
-  }
-`;
 
-export default function Login(props) {
+
+export default function Login() {
   const [variables, setVariables] = useState({
     emailOrPhone: "",
     password: "",

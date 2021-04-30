@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { Button, Card, Col, Modal, Form } from "react-bootstrap";
 
-import { useMessageDispatch, useMessageState } from "../../context/message";
+import { useMessageDispatch, useMessageState } from "../../context/states";
 
 const GET_GROUPS = gql`
   query getGroups {
@@ -11,7 +11,7 @@ const GET_GROUPS = gql`
       name
       participants
       latestMessage {
-        uuid
+        id
         content
       }
     }
@@ -21,13 +21,6 @@ const GET_GROUPS = gql`
 
 
 export default function Groups() {
-
-  const [showDetails, setShowDetails] = useState(false);
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const handleClose = () => {
-    setShowDetails(false);
-    setShowCreateGroup(false);
-  }
     
     const dispatch = useMessageDispatch();
     const { users, groups } = useMessageState();
@@ -41,31 +34,6 @@ export default function Groups() {
             dispatch({ type: "SET_GROUPS", payload: data.getGroups }),
         onError: (err) => console.log(err),
     });
-
-    const GroupDetails = () => {
-        return (
-          <Modal show={showDetails} onHide={handleClose}>
-            <Modal.Header closeButton>
-              <Modal.Title>Time is ending :/</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              So hope, you can value it! just around 14:00 I found i was wrong
-              with the program approach - schemas - 😢
-              <br />
-              Joined: {usersInGroup?.map((u) => u)}
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={handleClose}>
-                Say Bye to Jesus
-              </Button>
-              <Button variant="primary" onClick={handleClose}>
-                Save Jesus
-              </Button>
-            </Modal.Footer>
-          </Modal>
-        );
-    }
-
 
     let usersMarkup;
     if (!groups || loading) {
@@ -91,7 +59,6 @@ export default function Groups() {
                       <a
                         role="button"
                         className="dark float-right"
-                        onClick={() => setShowDetails(!showDetails)}
                       >
                         {"👁‍🗨"}
                       </a>
@@ -118,7 +85,6 @@ export default function Groups() {
 
     return (
       <Col className="px-0">
-        <GroupDetails />
         {usersMarkup}
         <Button>
           Add Group

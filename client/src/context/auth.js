@@ -5,25 +5,30 @@ const AuthStateContext = createContext();
 const AuthDispatchContext = createContext();
 
 //check if user has been login before
-let user = localStorage.getItem('user');
-if (!user) {
-    user = null;
+let username = localStorage.getItem("username");
+let userId = localStorage.getItem("userId");
+if (!username) {
+    username = null;
 }
+if (!userId) userId = null;
 
 const authReducer = (state, action) => {
     switch (action.type) {
         case 'LOGIN':
-            localStorage.setItem('user', action.payload.username)
+            localStorage.setItem("username", action.payload.username);
+            localStorage.setItem("userId", action.payload.id);
             return {
-                ...state,
-                user: action.payload
-            }
+              ...state,
+                username: action.payload.username,
+                userId: action.payload.id,
+            };
         case 'LOGOUT':
-            localStorage.removeItem('user');
+            localStorage.removeItem("username");
+            localStorage.removeItem("userId");
             return {
-                ...state,
-                user: null
-            }
+              ...state,
+              username: null,
+            };
         default:
             throw new Error(`unknown action type: ${action.type}`)
     }
@@ -31,7 +36,7 @@ const authReducer = (state, action) => {
 
 
 export const AuthProvider = ({ children }) => {
-    const [state, dispatch] = useReducer(authReducer, { user });
+    const [state, dispatch] = useReducer(authReducer, { username, userId });
 
     return (
         <AuthDispatchContext.Provider value={dispatch}>

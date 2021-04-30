@@ -16,6 +16,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      admin: {
+        type: DataTypes.STRING
+      },
       type: {
         type: DataTypes.ENUM("private", "group"),
         allowNull: false,
@@ -26,6 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
+      freezeTableName: true,
       modelName: "Conversation",
       tableName: "conversations",
     }

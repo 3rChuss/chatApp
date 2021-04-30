@@ -11,7 +11,7 @@ import Login from './pages/Login';
 
 // Providers
 import { AuthProvider } from './context/auth';
-import { MessageProvider } from "./context/message";
+import { MessageProvider } from "./context/states";
 import DynamicRoute from './util/route';
 
 function App() {

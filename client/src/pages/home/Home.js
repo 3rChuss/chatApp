@@ -4,38 +4,41 @@ import { Link } from 'react-router-dom';
 import { gql, useSubscription } from '@apollo/client';
 
 import { useAtuhDispatch, useAtuhState } from "../../context/auth";
-import { useMessageDispatch } from "../../context/message";
+import { useMessageDispatch } from "../../context/states";
 
 //components
 import Users from './Users';
 import Messages from './Messages';
-import Groups from "./Groups";
+import Groups from "../groups/Groups";
 
 const NEW_MESSAGE = gql`
   subscription newMessage{
     newMessage{
-      uuid
-      from to content createdAt
+      id
+      content
+      conversationId
+      senderId
+      createdAt
     }
   }
 `;
 
 
-export default function Home({ history }) {
+export default function Home() {
 
   const [key, setKey] = useState("chat");
   const authDispatch = useAtuhDispatch();
   const messageDispatch = useMessageDispatch();
-  const { user } = useAtuhState();
+  const { username, userId } = useAtuhState();
 
   const { data: messageData, error: messageError } = useSubscription(NEW_MESSAGE);
 
   useEffect(() => {
-    if (messageError) console.log(messageError);
+    if (messageError) console.log("este ", messageError);
 
     if (messageData) {
       const message = messageData.newMessage;
-      const otherUser = user === message.to ? message.from : message.to;
+      const otherUser = username === message.to ? message.from : message.to;
 
       messageDispatch({
         type: "ADD_MESSAGE",
@@ -70,6 +73,7 @@ export default function Home({ history }) {
         <Col xs={3} sm={4}>
           <TabContainer>
             <Tabs
+              transition={false}
               defaultActiveKey="chat"
               activeKey={key}
               onSelect={(k) => setKey(k)}

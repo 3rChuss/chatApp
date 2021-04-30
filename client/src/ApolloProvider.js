@@ -17,12 +17,14 @@ let httpLink = createHttpLink({
 
 const authLink = setContext((_, { headers }) => {
   // get the authentication user from local storage if it exists
-  const user = localStorage.getItem("user");
+  const user = localStorage.getItem("username");
+  const userId = localStorage.getItem("userId");
   // return the headers to the context so httpLink can read them
   return {
     headers: {
       ...headers,
-      username: user ? `${user}` : "",
+      username: user ? user : "",
+      userId: userId ? userId : "",
     },
   };
 });
@@ -34,7 +36,8 @@ const wsLink = new WebSocketLink({
   options: {
     reconnect: true,
     connectionParams: {
-      username: localStorage.getItem("user"),
+      username: localStorage.getItem("username"),
+      userId: localStorage.getItem("userId"),
     },
   },
 });
@@ -53,7 +56,19 @@ const splitLink = split(
 
 const client = new ApolloClient({
   link: splitLink,
-  cache: new InMemoryCache(),
+  cache: new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          getGroups: {
+            merge(existing, incoming) {
+              return incoming;
+            }
+          }
+        }
+      }
+    }
+  }),
 });
 
 export default function ApolloProvider(props) {

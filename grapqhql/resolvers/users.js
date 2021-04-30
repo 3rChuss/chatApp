@@ -1,36 +1,50 @@
 const bcrypt = require("bcryptjs");
 const { UserInputError, AuthenticationError } = require("apollo-server");
-const { User, Message } = require('../../models');
+const { User, Message, Conversation } = require("../../models");
 const { Op } = require("sequelize");
 
 module.exports = {
     Query: {
-        getUsers: async ( _, __, { user } ) => {
+        getUsers: async ( _, __, {username, userId} ) => {
             try {
 
-                if (!user) throw new AuthenticationError("Unauthenticated");
+                //check if the user is logged!
+                if (!username) throw new AuthenticationError("Unauthenticated");
 
                 let users = await User.findAll({
-                  attributes: [
-                    "username",
-                    "imageUrl",
-                    "createdAt",
-                    "phone",
-                  ],
-                  where: { username: { [Op.ne]: user } },
+                  where: { username: { [Op.ne]: username } },
                 });
 
-                const allUserMessages = await Message.findAll({
-                  where: {
-                    [Op.or]: [{ from: user }, { to: user }],
-                  },
+                //get all messages that includes the logged in user.
+                const privateMessages = await Message.findAll({
+                  include: [
+                    {
+                      model: Conversation,
+                      as: "conversation",
+                      where: {
+                        [Op.and]: [
+                          { type: "private" },
+                          {
+                            participants: { [Op.contains]: [parseInt(userId)] },
+                          },
+                        ],
+                      },
+                      attributes: ["participants"],
+                    },
+                    {
+                      model: User,
+                      as: "user",
+                      attributes: ["username", "id"],
+                    },
+                  ],
                   order: [["createdAt", "DESC"]],
                 });
                 
+                //find all messages from the user logged in.
                 users = users.map(otherUser => {
-                    const latestMessages = allUserMessages.find((m) =>
-                          m.from === otherUser.username ||
-                          m.to === otherUser.username
+                    const latestMessages = privateMessages.find(
+                      (m) =>
+                        m.conversation.participants.includes(otherUser.id)
                     );
                     otherUser.latestMessage = latestMessages;
                     return otherUser;
@@ -88,8 +102,8 @@ module.exports = {
                 }
 
                 return {
-                    ...user.toJSON(),
-                    createdAt: user.createdAt.toISOString(),
+                    id: user.id,
+                    username: user.username,
                 };
             } catch (err) {
                 throw err;
@@ -135,7 +149,7 @@ module.exports = {
                 return user;
             } catch (err) {
                 if (err.name === "SequelizeUniqueConstraintError") {
-                    err.errors.forEach((e) => (errors[e.path] = "User is already taken"));
+                    throw new UserInputError(err.message);
                 }
                 if (err.name === "SequelizeValidationError") {
                     err.errors.forEach((e) => (errors[e.path] = e.message));

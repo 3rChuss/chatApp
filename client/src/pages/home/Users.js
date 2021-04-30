@@ -1,25 +1,10 @@
 import React from 'react'
-import { gql, useQuery } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import { Col, Image } from "react-bootstrap";
+import { GET_USERS } from '../../graphql/users';
+import { useMessageDispatch, useMessageState } from "../../context/states";
 
-import { useMessageDispatch, useMessageState } from "../../context/message";
 
-const GET_USERS = gql`
-  query getUsers {
-    getUsers {
-      username
-      createdAt
-      imageUrl
-      latestMessage {
-        uuid
-        from
-        to
-        content
-        createdAt
-      }
-    }
-  }
-`;
 
 export default function Users() {
   const dispatch = useMessageDispatch();
@@ -27,8 +12,9 @@ export default function Users() {
   const selectedUser = users?.find((u) => u.selected === true)?.username;
 
   const { loading } = useQuery(GET_USERS, {
-    onCompleted: (data) =>
-      dispatch({ type: "SET_USERS", payload: data.getUsers }),
+    onCompleted: (data) => {
+      dispatch({ type: "SET_USERS", payload: data.getUsers })
+    },
     onError: (err) => console.log(err),
   });
 

@@ -12,18 +12,13 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      uuid: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
+      conversationId: {
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
-      from: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      to: {
-        type: Sequelize.STRING,
-        allowNull: false,
+      senderId: {
+        type: Sequelize.INTEGER,
+        allowNull:false
       },
       createdAt: {
         allowNull: false,

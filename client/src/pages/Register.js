@@ -1,30 +1,8 @@
 import React, { useState } from "react";
 import { Row, Col, Form, Button } from "react-bootstrap";
-import { gql, useMutation } from "@apollo/client";
+import { useMutation } from "@apollo/client";
 import { Link } from 'react-router-dom';
-
-const REGISTER_USER = gql`
-  mutation register(
-    $username: String!
-    $email: String!
-    $phone: String!
-    $password: String!
-    $confirmPassword: String!
-  ) {
-    register(
-      username: $username
-      email: $email
-      phone: $phone
-      password: $password
-      confirmPassword: $confirmPassword
-    ) {
-      username
-      email
-      createdAt
-    }
-  }
-`;
-
+import { REGISTER_USER } from '../graphql/users';
 
 export default function RegisterForm(props) {
     
@@ -38,7 +16,7 @@ export default function RegisterForm(props) {
 
   const [errors, setErrors] = useState({});
 
-  const [registerUser, { loading }] = useMutation(REGISTER_USER, {
+  const [register, { loading }] = useMutation(REGISTER_USER, {
     update: (_, __) => props.history.push('/login'),
     onError: (err) => setErrors(err.graphQLErrors),
   });
@@ -46,7 +24,7 @@ export default function RegisterForm(props) {
   const submitRegisterForm = (e) => {
     e.preventDefault();
 
-    registerUser({ variables });
+    register({ variables });
   };
     return (
       <Row className="py-5 justify-content-center">

@@ -6,63 +6,63 @@ const pubsub = new PubSub();
 
 module.exports = {
     Query: {
-        getMessages: async (parent, { from }, { user }) => {
-            try {
-                if (!user) throw new AuthenticationError("Unauthenticated");
+        // getMessages: async (parent, { from }, { user }) => {
+        //     try {
+        //         if (!user) throw new AuthenticationError("Unauthenticated");
 
-                const otherUser = await User.findOne({
-                    where: { username: user },
-                });
+        //         const otherUser = await User.findOne({
+        //             where: { username: user },
+        //         });
 
-                if (!otherUser) throw new UserInputError("User not found");
+        //         if (!otherUser) throw new UserInputError("User not found");
 
-                const usernames = [otherUser.username, from];
-                const messages = await Message.findAll({
-                    where: {
-                        from: {
-                            [Op.in]: usernames,
-                        },
-                        to: {
-                            [Op.in]: usernames,
-                        },
-                    },
-                    order: [["createdAt", "DESC"]],
-                });
+        //         const usernames = [otherUser.username, from];
+        //         const messages = await Message.findAll({
+        //             where: {
+        //                 from: {
+        //                     [Op.in]: usernames,
+        //                 },
+        //                 to: {
+        //                     [Op.in]: usernames,
+        //                 },
+        //             },
+        //             order: [["createdAt", "DESC"]],
+        //         });
 
-                return messages;
-            } catch (error) {
-                console.log(error);
-                throw error;
-            }
-        },
+        //         return messages;
+        //     } catch (error) {
+        //         console.log(error);
+        //         throw error;
+        //     }
+        // },
     },
     Mutation: {
-        sendMessage: async (_, { to, type, content }, { user }) => {
-            try {
-                const recipient = await User.findOne({ where: { username: to } });
+        // sendMessage: async (_, { to, type, content }, { user }) => {
+        //     try {
+        //         const recipient = await User.findOne({ where: { username: to } });
 
-                if (!recipient) {
-                    throw new UserInputError("User not found");
-                } else if (recipient.username === user) {
-                    throw new UserInputError("You can't message to yourself :)");
-                }
-                if (content.trim() === "") throw new UserInputError("Message is empty");
+        //         if (!recipient) {
+        //             throw new UserInputError("User not found");
+        //         } else if (recipient.username === user) {
+        //             throw new UserInputError("You can't message to yourself :)");
+        //         }
+        //         if (content.trim() === "") throw new UserInputError("Message is empty");
 
-                const message = await Message.create({
-                    from: user,
-                    type,
-                    to,
-                    content,
-                });
+        //         const message = await Message.create({
+        //             from: user,
+        //             type,
+        //             to,
+        //             content,
+        //         });
 
-                pubsub.publish("NEW_MESSAGE", { newMessage: message });
+        //         pubsub.publish("NEW_MESSAGE", { newMessage: message });
 
-                return message;
-            } catch (err) {
-                console.log(err);
-                throw err;
-            }
-        },
+        //         return message;
+        //     } catch (err) {
+        //         console.log(err);
+        //         throw err;
+        //     }
+        // },
     },
     Subscription: {
         newMessage: {
