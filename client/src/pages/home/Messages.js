@@ -5,10 +5,9 @@ import { useMessageDispatch, useMessageState } from "../../context/states";
 import {
   GET_PRIVATE_MESSAGES,
   SEND_PRIVATE_MESG,
-  SEND_GROUP_MSG,
 } from "../../graphql/messages";
 
-import { GET_GROUP_MSGS } from '../../graphql/groups';
+import { GET_GROUP_MSGS, SEND_GROUP_MSG } from "../../graphql/groups";
 
 import Message from './Message';
 import { Fragment } from 'react';
@@ -16,86 +15,88 @@ import { Fragment } from 'react';
 
 export default function Messages() {
   const dispatch = useMessageDispatch();
-  const { users,  selectedChat } = useMessageState();
-  const [content, setContent] = useState('');
- 
-  const messages = selectedChat?.messages;
+  const { selectedChat } = useMessageState();
+  const [content, setContent] = useState("");
 
- 
   const [
     getPrivateMessages,
     { loading: messagesLoading, data: messagesData },
-  ] = useLazyQuery(GET_PRIVATE_MESSAGES, {
-    onError:(err) => console.log(err),
-  });
+  ] = useLazyQuery(GET_PRIVATE_MESSAGES, { onError: (err) => console.log(err), });
 
   const [
     getGroupMessages,
-    { data: groupData, loading: loadingGroup },
-  ] = useLazyQuery(GET_GROUP_MSGS, {
-    onError: (err) => console.log(err),
-  });
+    { data: groupData, loading: groupMessagesLoading },
+  ] = useLazyQuery(GET_GROUP_MSGS, { onError: (err) => console.log(err), });
 
   const [sendPrivateMsg, { loading: loadingPrivateMsg }] = useMutation(
-    SEND_PRIVATE_MESG,
-    {
-      onError: (err) => console.log(err),
-    }
-  );
+    SEND_PRIVATE_MESG, { onError: (err) => console.log(err), });
 
   const [sendGroupMsg, { loading: loadingGroupMsg }] = useMutation(
-    SEND_GROUP_MSG,
-    {
-      onError: (err) => console.log(err),
-    }
-  );
+    SEND_GROUP_MSG, { onError: (err) => console.log(err), });
 
+  //Get messages when new chat is selected and if there is new data coming
   useEffect(() => {
-    if (selectedChat && !selectedChat.latestMessage && selectedChat.chatType === 'private') {
+    if (!selectedChat) return;
+    if (selectedChat && selectedChat.chatType === "private") {
       getPrivateMessages({ variables: { userId: selectedChat.user.id } });
-    } else if (
-      selectedChat &&
-      !selectedChat.latestMessage &&
-      selectedChat.chatType === "group"
-    ) {
+    } else if (selectedChat && selectedChat.chatType === "group") {
       getGroupMessages({
-        variables: { conversationId: 1 },
+        variables: { conversationId: selectedChat.group.id },
       });
     }
-  }, [selectedChat]);
+  }, [selectedChat, messagesData, groupData]);
 
-  const submitMessage = e => {
+
+  const submitMessage = (e) => {
     e.preventDefault();
-    if (content.trim() === "") return
-    // mutation for sending messages
-    if (selectedChat.chatType === 'private'){
-      sendPrivateMsg({ receiverId: selectedChat.user.id, content });
-    } else if (selectedChat.chatType === 'group' ){
+    if (content.trim() === "") return;
+
+    if (selectedChat.chatType === "private") {
+      sendPrivateMsg({ variables: { receiverId: selectedChat.user.id, content } });
+    } else if (selectedChat.chatType === "group") {
       sendGroupMsg({
-        variables: { conversationId: selectedChat.chatData.id, content},
+        variables: { conversationId: selectedChat.group.id, content },
       });
     }
     setContent("");
-  }
+  };
 
+  //For private messages
   let selectedChatMarkup;
-  if (!messages && !messagesLoading) {
-    selectedChatMarkup = <small className="info-text">Select a friend</small>;
+  if (!messagesData && !groupData) {
+    selectedChatMarkup = <small className="info-text">Select a chat</small>;
   } else if (messagesLoading) {
-    selectedChatMarkup = <small className="info-text">Loading..</small>;
-  } else if (messages.length > 0) {
-    selectedChatMarkup = messages.map((message, index) => (
-      <Fragment key={index}>
-        <Message key={message.id} message={message} />
-        {index === messages.length - 1 &&
-          (<div className="invisible"><hr className="m-0" /></div>)
-        }
-      </Fragment>
-    ));
-  } else if (messages.length === 0) {
-    selectedChatMarkup = (
-      <small className="info-text">Connected! start sending messages!</small>
-    );
+    selectedChatMarkup = <small className="info-text">Loading...</small>;
+  } else if (messagesData) {
+    if (messagesData.getPrivateMessages.length > 0) {
+      selectedChatMarkup = messagesData.getPrivateMessages.map((message, index) => (
+        <Fragment key={index}>
+          <Message key={message.id} message={message} />
+          {index === messagesData.getPrivateMessages.length - 1 && (
+            <div className="invisible">
+              <hr className="m-0" />
+            </div>
+          )}
+        </Fragment>
+      ));
+    } else if (messagesData.getPrivateMessages.length === 0) {
+      selectedChatMarkup = <small className="info-text"> Connected! start sending messages!</small>;
+    }
+  } else if (groupData) {
+    if (groupData.getGroupMessages.length > 0) {
+      selectedChatMarkup = groupData.getGroupMessages.map((message, index) => (
+        <Fragment key={index}>
+          <Message key={message.id} message={message} />
+          {index === groupData.getGroupMessages.length - 1 && (
+            <div className="invisible">
+              <hr className="m-0" />
+            </div>
+          )}
+        </Fragment>
+      ));
+    } else if (groupData.getGroupMessages.length === 0) {
+      selectedChatMarkup = <small className="info-text">Connected! start sending messages!</small>
+    }
   }
 
   return (

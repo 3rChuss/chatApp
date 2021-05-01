@@ -43,7 +43,7 @@ module.exports = {
               attributes: ["username", "id"],
             },
           ],
-          order: [["createdAt", "ASC"]],
+          order: [["createdAt", "DESC"]],
         });
 
         return messages;
@@ -87,7 +87,7 @@ module.exports = {
               attributes: ["username", "id"],
             },
           ],
-          order: [["createdAt", "ASC"]],
+          order: [["createdAt", "DESC"]],
         });
 
         return messages;
@@ -98,42 +98,67 @@ module.exports = {
   },
 
   Mutation: {
-    // sendMessage: async (_, { to, type, content }, { user }) => {
-    //     try {
-    //         const recipient = await User.findOne({ where: { username: to } });
-    //         if (!recipient) {
-    //             throw new UserInputError("User not found");
-    //         } else if (recipient.username === user) {
-    //             throw new UserInputError("You can't message to yourself :)");
-    //         }
-    //         if (content.trim() === "") throw new UserInputError("Message is empty");
-    //         const message = await Message.create({
-    //             from: user,
-    //             type,
-    //             to,
-    //             content,
-    //         });
-    //         pubsub.publish("NEW_MESSAGE", { newMessage: message });
-    //         return message;
-    //     } catch (err) {
-    //         console.log(err);
-    //         throw err;
-    //     }
-    // },
+    sendPrivateMessage: async (_, args, { username, userId }) => {
+      const { receiverId, content } = args;
+
+      if (content.trim() === "") throw new UserInputError("Content is empty");
+
+      try {
+        let conversation = await Conversation.findOne({
+          where: {
+            [Op.and]: [
+              { type: "private" },
+              {
+                participants: { [Op.contains]: [parseInt(userId), receiverId] },
+              },
+            ],
+          },
+        });
+
+        if (!conversation) {
+          const newConversation = new Conversation({
+            type: "private",
+            participants: [parseInt(userId), parseInt(receiverId)],
+          });
+          conversation = await newConversation.save();
+        }
+
+        const newMessage = await Message.create({
+          conversationId: conversation.id,
+          senderId: parseInt(userId),
+          content,
+        });
+
+
+        pubsub.publish("NEW_MESSAGE", {
+          newMessage: {
+            message: {
+              ...newMessage.toJSON(),
+              user: { id: parseInt(userId), username: username },
+            },
+            type: "private",
+            participants: conversation.participants,
+          },
+        });
+
+        return newMessage;
+      } catch (err) {
+        throw err;
+      }
+    },
   },
   Subscription: {
     newMessage: {
       subscribe: withFilter(
-        (_, __, { user }) => {
-          if (!user) throw new AuthenticationError("Unauthenticated");
-          return pubsub.asyncIterator(["NEW_MESSAGE"]);
-        },
-        ({ newMessage }, _, { user }) => {
-          if (newMessage.from === user || newMessage.to === user) {
-            return true;
+        (_, __, context) => {
+          if (context.username) {
+            return pubsub.asyncIterator(["NEW_MESSAGE"]);
           }
-
-          return false;
+        },
+        ({ newMessage }, _, {userId}) => {
+          return (
+            newMessage.participants.includes(parseInt(userId))
+          );
         }
       ),
     },

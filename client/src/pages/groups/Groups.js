@@ -1,13 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import { useQuery } from "@apollo/client";
 import { Button, Card, Col } from "react-bootstrap";
 
 import { GET_GROUPS } from '../../graphql/groups';
 
 import { useMessageDispatch, useMessageState } from "../../context/states";
-
-
-
 
 
 export default function Groups() {

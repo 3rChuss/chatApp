@@ -5,7 +5,6 @@ import { GET_USERS } from '../../graphql/users';
 import { useMessageDispatch, useMessageState } from "../../context/states";
 
 
-
 export default function Users() {
   const dispatch = useMessageDispatch();
   const { users, selectedChat } = useMessageState();
@@ -52,12 +51,8 @@ export default function Users() {
           <div className="d-none d-md-block ml-2">
             <p className="text-success m-0">{user.username}</p>
             <small>
-              {user.latestMessage &&
-              user.latestMessage.receiverId === user.id ? (
-                `${user.latestMessage.content} < you`
-              ) : user.latestMessage &&
-                user.latestMessage.receiverId !== user.id ? (
-                `${user.latestMessage.content} < ${user.latestMessage.receiverId}`
+              {user.latestMessage ? (
+                `${user.latestMessage.content}`
               ) : (
                 <p>Click to send a message</p>
               )}

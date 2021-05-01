@@ -32,11 +32,3 @@ export const SEND_PRIVATE_MESG = gql`
   ${MESSAGE_DETAILS}
 `;
 
-export const SEND_GROUP_MSG = gql`
-  mutation sendGroupMsg($conversationId: ID!, $body: String!) {
-    sendGroupMessage(conversationId: $conversationId, body: $body) {
-      ...MessageDetails
-    }
-  }
-  ${MESSAGE_DETAILS}
-`;

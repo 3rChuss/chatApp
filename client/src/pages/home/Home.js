@@ -1,55 +1,25 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useState } from "react";
 import { Row, Col, Button, Tab, Tabs, TabContainer } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { gql, useSubscription } from '@apollo/client';
+import {  useSubscription } from '@apollo/client';
 
-import { useAtuhDispatch, useAtuhState } from "../../context/auth";
-import { useMessageDispatch } from "../../context/states";
+import { useAtuhDispatch } from "../../context/auth";
+import { NEW_MESSAGE } from "../../graphql/subscriptions";
 
 //components
 import Users from './Users';
 import Messages from './Messages';
 import Groups from "../groups/Groups";
 
-const NEW_MESSAGE = gql`
-  subscription newMessage{
-    newMessage{
-      id
-      content
-      conversationId
-      senderId
-      createdAt
-    }
-  }
-`;
-
 
 export default function Home() {
 
   const [key, setKey] = useState("chat");
   const authDispatch = useAtuhDispatch();
-  const messageDispatch = useMessageDispatch();
-  const { username, userId } = useAtuhState();
 
-  const { data: messageData, error: messageError } = useSubscription(NEW_MESSAGE);
 
-  useEffect(() => {
-    if (messageError) console.log("este ", messageError);
+  console.log(useSubscription(NEW_MESSAGE));
 
-    if (messageData) {
-      const message = messageData.newMessage;
-      const otherUser = username === message.to ? message.from : message.to;
-
-      messageDispatch({
-        type: "ADD_MESSAGE",
-        payload: {
-          username: otherUser,
-          message
-        },
-      })
-    };
-
-  }, [messageError, messageData])
 
   const logout = () => {
     authDispatch({ type: 'LOGOUT' });

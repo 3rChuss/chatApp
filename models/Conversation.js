@@ -16,14 +16,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
       },
       admin: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       type: {
         type: DataTypes.ENUM("private", "group"),
         allowNull: false,
       },
       participants: {
-        type: DataTypes.STRING,
+        type: DataTypes.ARRAY(DataTypes.INTEGER),
       },
     },
     {
