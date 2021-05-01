@@ -23,14 +23,20 @@ export const GET_PRIVATE_MESSAGES = gql`
   ${MESSAGE_DETAILS}
 `;
 
-export const SEND_MESSAGE = gql`
-  mutation sendMessage($to: String!, $content: String!) {
-    sendMessage(to: $to, content: $content) {
-      id
-      from
-      to
-      content
-      createdAt
+export const SEND_PRIVATE_MESG = gql`
+  mutation sendPrivateMsg($receiverId: ID!, $content: String!) {
+    sendPrivateMessage(receiverId: $receiverId, content: $content) {
+      ...MessageDetails
     }
   }
+  ${MESSAGE_DETAILS}
+`;
+
+export const SEND_GROUP_MSG = gql`
+  mutation sendGroupMsg($conversationId: ID!, $body: String!) {
+    sendGroupMessage(conversationId: $conversationId, body: $body) {
+      ...MessageDetails
+    }
+  }
+  ${MESSAGE_DETAILS}
 `;

@@ -70,7 +70,7 @@ export default function Home() {
         </Button>
       </Row>
       <Row className="bg-light pt-5 mt-2">
-        <Col xs={3} sm={4}>
+        <Col xs={3} sm={4} className="p-0">
           <TabContainer>
             <Tabs
               transition={false}

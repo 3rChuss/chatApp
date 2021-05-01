@@ -24,14 +24,10 @@ const messageReducer = (state, action) => {
         users: usersCopy
       }
 
-    case "SET_SELECTED_USER":
-      usersCopy = state.users.map((user) => ({
-        ...user,
-        selected: user.username === action.payload
-      }))
+    case "SET_SELECTED_CHAT":
       return {
         ...state,
-        users: usersCopy,
+        selectedChat: action.payload,
       }
     
     case "ADD_MESSAGE":
@@ -48,22 +44,6 @@ const messageReducer = (state, action) => {
         ...state,
         users: usersCopy,
       }
-    
-    case "SET_GROUPS":
-      return {
-        ...state,
-        groups: action.payload,
-      }
-
-    case "SET_SELECTED_GROUP":
-      usersCopy = state.groups.map((group) => ({
-        ...group,
-        selected: group.id === action.payload,
-      }));
-      return {
-        ...state,
-        groups: usersCopy,
-      };
 
       
     default:
@@ -72,7 +52,7 @@ const messageReducer = (state, action) => {
 };
 
 export const MessageProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(messageReducer, { users: null });
+  const [state, dispatch] = useReducer(messageReducer, { users: null});
 
   return (
     <MessageDispatchContext.Provider value={dispatch}>

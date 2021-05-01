@@ -3,8 +3,8 @@ import ReactMarkdown from "react-markdown";
 import { useAtuhState } from '../../context/auth';
 
 export default function Message({ message }) {
-    const { user } = useAtuhState();
-  const sent = message.from === user;
+  const { user } = useAtuhState();
+  const sent = true;
 
     return (
       <div

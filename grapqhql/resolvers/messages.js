@@ -1,87 +1,141 @@
 const { UserInputError, PubSub, withFilter} = require("apollo-server");
 const { Op } = require('sequelize');
-const { Message, User } = require("../../models");
+const { Message, User, Conversation } = require("../../models");
 
 const pubsub = new PubSub();
 
 module.exports = {
-    Query: {
-        // getMessages: async (parent, { from }, { user }) => {
-        //     try {
-        //         if (!user) throw new AuthenticationError("Unauthenticated");
+  Query: {
+    getPrivateMessages: async (_, args, context) => {
+      const { userId } = args;
+      try {
+        const user = await User.findOne({ where: { id: userId } });
 
-        //         const otherUser = await User.findOne({
-        //             where: { username: user },
-        //         });
+        if (!user) {
+          throw new UserInputError(
+            `User with id: ${userId} does not exist in DB.`
+          );
+        }
 
-        //         if (!otherUser) throw new UserInputError("User not found");
+        const messages = await Message.findAll({
+          include: [
+            {
+              model: Conversation,
+              as: "conversation",
+              where: {
+                [Op.and]: [
+                  { type: "private" },
+                  {
+                    participants: {
+                      [Op.contains]: [
+                        parseInt(context.userId),
+                        parseInt(userId),
+                      ],
+                    },
+                  },
+                ],
+              },
+              attributes: [],
+            },
+            {
+              model: User,
+              as: "user",
+              attributes: ["username", "id"],
+            },
+          ],
+          order: [["createdAt", "ASC"]],
+        });
 
-        //         const usernames = [otherUser.username, from];
-        //         const messages = await Message.findAll({
-        //             where: {
-        //                 from: {
-        //                     [Op.in]: usernames,
-        //                 },
-        //                 to: {
-        //                     [Op.in]: usernames,
-        //                 },
-        //             },
-        //             order: [["createdAt", "DESC"]],
-        //         });
-
-        //         return messages;
-        //     } catch (error) {
-        //         console.log(error);
-        //         throw error;
-        //     }
-        // },
+        return messages;
+      } catch (err) {
+        throw new UserInputError(err);
+      }
     },
-    Mutation: {
-        // sendMessage: async (_, { to, type, content }, { user }) => {
-        //     try {
-        //         const recipient = await User.findOne({ where: { username: to } });
+    getGroupMessages: async (_, args, { username, userId }) => {
+      const { conversationId } = args;
 
-        //         if (!recipient) {
-        //             throw new UserInputError("User not found");
-        //         } else if (recipient.username === user) {
-        //             throw new UserInputError("You can't message to yourself :)");
-        //         }
-        //         if (content.trim() === "") throw new UserInputError("Message is empty");
+      try {
+        const groupConversation = await Conversation.findOne({
+          where: { id: conversationId },
+        });
 
-        //         const message = await Message.create({
-        //             from: user,
-        //             type,
-        //             to,
-        //             content,
-        //         });
+        if (!groupConversation || groupConversation.type !== "group") {
+          throw new UserInputError(
+            `Invalid conversation ID, or conversation isn't of group type.`
+          );
+        }
 
-        //         pubsub.publish("NEW_MESSAGE", { newMessage: message });
+        if (!groupConversation.participants.includes(parseInt(userId))) {
+          throw new UserInputError(
+            "Access is denied. Only members of the group can view messages."
+          );
+        }
 
-        //         return message;
-        //     } catch (err) {
-        //         console.log(err);
-        //         throw err;
-        //     }
-        // },
+        const messages = await Message.findAll({
+          include: [
+            {
+              model: Conversation,
+              as: "conversation",
+              where: {
+                id: conversationId,
+              },
+              attributes: [],
+            },
+            {
+              model: User,
+              as: "user",
+              attributes: ["username", "id"],
+            },
+          ],
+          order: [["createdAt", "ASC"]],
+        });
+
+        return messages;
+      } catch (err) {
+        throw new UserInputError(err);
+      }
     },
-    Subscription: {
-        newMessage: {
-            subscribe: withFilter(
-                (_, __, { user }) => {
-                    if (!user) throw new AuthenticationError("Unauthenticated");
-                    return pubsub.asyncIterator(["NEW_MESSAGE"]);
-                },
-                ({ newMessage }, _, { user }) => {
-                    if (
-                        newMessage.from === user ||
-                        newMessage.to === user
-                    ) {
-                        return true;
-                    }
+  },
 
-                    return false;
-                },
-            ),
+  Mutation: {
+    // sendMessage: async (_, { to, type, content }, { user }) => {
+    //     try {
+    //         const recipient = await User.findOne({ where: { username: to } });
+    //         if (!recipient) {
+    //             throw new UserInputError("User not found");
+    //         } else if (recipient.username === user) {
+    //             throw new UserInputError("You can't message to yourself :)");
+    //         }
+    //         if (content.trim() === "") throw new UserInputError("Message is empty");
+    //         const message = await Message.create({
+    //             from: user,
+    //             type,
+    //             to,
+    //             content,
+    //         });
+    //         pubsub.publish("NEW_MESSAGE", { newMessage: message });
+    //         return message;
+    //     } catch (err) {
+    //         console.log(err);
+    //         throw err;
+    //     }
+    // },
+  },
+  Subscription: {
+    newMessage: {
+      subscribe: withFilter(
+        (_, __, { user }) => {
+          if (!user) throw new AuthenticationError("Unauthenticated");
+          return pubsub.asyncIterator(["NEW_MESSAGE"]);
         },
+        ({ newMessage }, _, { user }) => {
+          if (newMessage.from === user || newMessage.to === user) {
+            return true;
+          }
+
+          return false;
+        }
+      ),
     },
+  },
 };

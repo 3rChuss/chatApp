@@ -8,8 +8,7 @@ import { useMessageDispatch, useMessageState } from "../../context/states";
 
 export default function Users() {
   const dispatch = useMessageDispatch();
-  const { users } = useMessageState();
-  const selectedUser = users?.find((u) => u.selected === true)?.username;
+  const { users, selectedChat } = useMessageState();
 
   const { loading } = useQuery(GET_USERS, {
     onCompleted: (data) => {
@@ -30,10 +29,16 @@ export default function Users() {
           role="button"
           key={user.username}
           className={`d-flex p-3 user-div justify-content-center justify-content-md-start ${
-            selectedUser === user.username ? "bg-white" : " "
+            selectedChat?.chatType === "private" &&
+            user.id === selectedChat.user.id
+              ? "bg-white"
+              : " "
           }`}
           onClick={() =>
-            dispatch({ type: "SET_SELECTED_USER", payload: user.username })
+            dispatch({
+              type: "SET_SELECTED_CHAT",
+              payload: { user, chatType: "private" },
+            })
           }
         >
           <Image
@@ -47,9 +52,13 @@ export default function Users() {
           <div className="d-none d-md-block ml-2">
             <p className="text-success m-0">{user.username}</p>
             <small>
-              {user.latestMessage && user.latestMessage.to === user.username ? (
+              {user.latestMessage &&
+              user.latestMessage.receiverId === user.id ? (
                 `${user.latestMessage.content} < you`
-              ) : ( user.latestMessage && user.latestMessage.to !== user.username ? `${user.latestMessage.content} < ${user.latestMessage.to}` :
+              ) : user.latestMessage &&
+                user.latestMessage.receiverId !== user.id ? (
+                `${user.latestMessage.content} < ${user.latestMessage.receiverId}`
+              ) : (
                 <p>Click to send a message</p>
               )}
             </small>

@@ -14,7 +14,6 @@ module.exports = (sequelize, DataTypes) => {
     {
       name: {
         type: DataTypes.STRING,
-        allowNull: false,
       },
       admin: {
         type: DataTypes.STRING

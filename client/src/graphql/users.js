@@ -26,7 +26,6 @@ export const REGISTER_USER = gql`
     ) {
       username
       id
-      createdAt
     }
   }
 `;
@@ -35,6 +34,7 @@ export const REGISTER_USER = gql`
 export const GET_USERS = gql`
   query getUsers {
     getUsers {
+      id
       username
       imageUrl
       latestMessage {

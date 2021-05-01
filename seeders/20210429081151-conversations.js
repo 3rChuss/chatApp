@@ -6,9 +6,10 @@ module.exports = {
       "conversations",
       [
         {
-          name: "Global Chat",
-          admin: "3rchuss",
-          participants: "Jane, aaa",
+          name: "Test group",
+          type: "group",
+          admin: 2,
+          participants: [2,1,15],
           createdAt: new Date(),
           updatedAt: new Date(),
         },
