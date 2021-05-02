@@ -1,10 +1,11 @@
 import React, { Fragment, useState } from "react";
-import { Row, Col, Button, Tab, Tabs, TabContainer } from 'react-bootstrap';
+import { Row, Col, Button, Tab, Tabs, TabContainer, Image } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import {  useSubscription } from '@apollo/client';
+import { useAtuhState } from '../../context/auth';
+import {  useMessageState } from "../../context/states";
 
 import { useAtuhDispatch } from "../../context/auth";
-import { NEW_MESSAGE } from "../../graphql/subscriptions";
+
 
 //components
 import Users from './Users';
@@ -13,13 +14,13 @@ import Groups from "../groups/Groups";
 
 
 export default function Home() {
-
+  const { username } = useAtuhState();
+  const { users } = useMessageState();
   const [key, setKey] = useState("chat");
   const authDispatch = useAtuhDispatch();
 
 
-  console.log(useSubscription(NEW_MESSAGE));
-
+  const user = users?.filter((u) => u.username === username)
 
   const logout = () => {
     authDispatch({ type: 'LOGOUT' });
@@ -29,12 +30,31 @@ export default function Home() {
   return (
     <Fragment>
       <Row className="justify-content-around bg-light">
-        <Link to="/login">
-          <Button variant="link">Login</Button>
-        </Link>
-        <Link to="/register">
-          <Button variant="link">Register</Button>
-        </Link>
+        {username && (
+          <div className="col user-div">
+          <Image
+            src={
+              user?.imageUrl ||
+              "https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50"
+            }
+            roundedCircle
+            className="mr-2 user-pic"
+          />
+            <div className="d-inline ml-2">
+              <small className="text-success m-0">{username}</small>
+          </div>
+          </div>
+        )}
+        {!username && (
+          <>
+            <Link to="/login">
+              <Button variant="link">Login</Button>
+            </Link>
+            <Link to="/register">
+              <Button variant="link">Register</Button>
+            </Link>
+          </>
+        )}
         <Button variant="link" onClick={logout}>
           Logout
         </Button>

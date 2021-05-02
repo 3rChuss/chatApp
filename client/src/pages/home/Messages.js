@@ -1,40 +1,58 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Fragment } from 'react';
 import { Col, Form } from 'react-bootstrap';
 import { useLazyQuery, useMutation } from "@apollo/client";
-import { useMessageDispatch, useMessageState } from "../../context/states";
+import { useSubscription } from '@apollo/client';
+
+import { useMessageState, useMessageDispatch } from "../../context/states";
+import { useAtuhState } from '../../context/auth';
 import {
   GET_PRIVATE_MESSAGES,
   SEND_PRIVATE_MESG,
 } from "../../graphql/messages";
+import { 
+  GET_GROUP_MSGS,
+  GET_GROUPS,
+  SEND_GROUP_MSG } from "../../graphql/groups";
+import { NEW_MESSAGE } from "../../graphql/subscriptions";
 
-import { GET_GROUP_MSGS, SEND_GROUP_MSG } from "../../graphql/groups";
+
 
 import Message from './Message';
-import { Fragment } from 'react';
 
 
 export default function Messages() {
-  const dispatch = useMessageDispatch();
+  const messageDispatch = useMessageDispatch();
   const { selectedChat } = useMessageState();
+  const { userId } = useAtuhState
   const [content, setContent] = useState("");
 
-  const [
-    getPrivateMessages,
-    { loading: messagesLoading, data: messagesData },
+  const [ getPrivateMessages,
+    { loading: messagesLoading, data: privateMessagesData },
   ] = useLazyQuery(GET_PRIVATE_MESSAGES, { onError: (err) => console.log(err), });
 
-  const [
-    getGroupMessages,
+  const [ getGroupMessages,
     { data: groupData, loading: groupMessagesLoading },
   ] = useLazyQuery(GET_GROUP_MSGS, { onError: (err) => console.log(err), });
 
-  const [sendPrivateMsg, { loading: loadingPrivateMsg }] = useMutation(
-    SEND_PRIVATE_MESG, { onError: (err) => console.log(err), });
+  const [sendPrivateMsg, 
+    { loading: loadingPrivateMsg }
+  ] = useMutation(SEND_PRIVATE_MESG, { onError: (err) => console.log(err), });
 
-  const [sendGroupMsg, { loading: loadingGroupMsg }] = useMutation(
-    SEND_GROUP_MSG, { onError: (err) => console.log(err), });
+  const [sendGroupMsg, 
+    { loading: loadingGroupMsg }
+    ] = useMutation(SEND_GROUP_MSG, { onError: (err) => console.log(err), });
 
-  //Get messages when new chat is selected and if there is new data coming
+
+  //Get new message and s
+  const { error: subscriptionError, data: newMessageData } = useSubscription(NEW_MESSAGE)
+  useEffect(() => {
+    if (subscriptionError) {
+      console.log(subscriptionError)
+    }
+  }, [subscriptionError]);
+
+
+  //Get all messages and show
   useEffect(() => {
     if (!selectedChat) return;
     if (selectedChat && selectedChat.chatType === "private") {
@@ -44,9 +62,11 @@ export default function Messages() {
         variables: { conversationId: selectedChat.group.id },
       });
     }
-  }, [selectedChat, messagesData, groupData]);
+  }, [selectedChat]);
 
 
+
+  //Submit new messages
   const submitMessage = (e) => {
     e.preventDefault();
     if (content.trim() === "") return;
@@ -60,26 +80,26 @@ export default function Messages() {
     }
     setContent("");
   };
-
+  
   //For private messages
   let selectedChatMarkup;
-  if (!messagesData && !groupData) {
+  if (!privateMessagesData && !groupData) {
     selectedChatMarkup = <small className="info-text">Select a chat</small>;
   } else if (messagesLoading) {
     selectedChatMarkup = <small className="info-text">Loading...</small>;
-  } else if (messagesData) {
-    if (messagesData.getPrivateMessages.length > 0) {
-      selectedChatMarkup = messagesData.getPrivateMessages.map((message, index) => (
+  } else if (privateMessagesData) {
+    if (privateMessagesData.getPrivateMessages.length > 0) {
+      selectedChatMarkup = privateMessagesData.getPrivateMessages.map((message, index) => (
         <Fragment key={index}>
           <Message key={message.id} message={message} />
-          {index === messagesData.getPrivateMessages.length - 1 && (
+          {index === privateMessagesData.getPrivateMessages.length - 1 && (
             <div className="invisible">
               <hr className="m-0" />
             </div>
           )}
         </Fragment>
       ));
-    } else if (messagesData.getPrivateMessages.length === 0) {
+    } else if (privateMessagesData.getPrivateMessages.length === 0) {
       selectedChatMarkup = <small className="info-text"> Connected! start sending messages!</small>;
     }
   } else if (groupData) {

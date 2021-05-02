@@ -23,9 +23,11 @@ export default function RegisterForm(props) {
 
   const submitRegisterForm = (e) => {
     e.preventDefault();
-
     register({ variables });
   };
+
+  //TODO
+  //add class validations to the inputs
     return (
       <Row className="py-5 justify-content-center">
         <Col sm={8} md={6} lg={4}>
