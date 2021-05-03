@@ -1,17 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { Button, Card, Col } from "react-bootstrap";
 
 import { GET_GROUPS } from '../../graphql/groups';
 
 import { useMessageDispatch, useMessageState } from "../../context/states";
+import CreateGroup from './CreateGroup';
 
 
 export default function Groups() {
     
     const dispatch = useMessageDispatch();
     const { selectedChat } = useMessageState();
-
+    const [show,setShow] = useState(false);
     
     const { data: groupData, loading } = useQuery(GET_GROUPS, {
         onError: (err) => console.log(err),
@@ -65,12 +66,16 @@ export default function Groups() {
     }
 
 
+    const closeModal = () => setShow(!show);
     return (
       <Col className="px-0">
         {usersMarkup}
-        <Button>
+        <Button onClick={closeModal}>
           Add Group
         </Button>
+        {show && (
+          <CreateGroup show={show} closeModal={closeModal}/>
+        )}
       </Col>
     );
 }

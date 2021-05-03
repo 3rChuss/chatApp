@@ -67,88 +67,103 @@ module.exports = {
         },
     },
     Mutation: {
-        createGroup: async (_, args, { username, userId }) => {
-            const { name, participants } = args;
+      createGroup: async (_, args, { username, userId }) => {
+        const { name, participants } = args;
+        console.log(name, participants);
 
-            if (name.trim() === "") {
-                throw new UserInputError("Name field must not be empty.");
-            }
+        if (name.trim() === '') {
+          throw new UserInputError('Name field must not be empty.');
+        }
 
-            try {
-                const users = await User.findAll();
-                const userIds = users.map((u) => u.username);
+        if (name.length > 30) {
+          throw new UserInputError(
+            'Title character length must not be more than 30.'
+          );
+        }
 
-                if (
-                  participants.filter((p, i) => i !== participants.indexOf(p))
-                    .length !== 0 ||
-                  participants.includes(userId)
-                ) {
-                  throw new UserInputError(
-                    "Participants array must not contain duplicate IDs."
-                  );
-                }
-                
-                const group = await Conversation.create({
-                    name,
-                    admin: userId,
-                    participants: [userId, ...participants],
-                });
+        try {
+          const users = await User.findAll();
+          const userIds = users.map((u) => u.id.toString());
 
-                return {
-                    ...group.toJSON(),
-                    adminUser: { id: userId, username},
-                };
-            } catch (err) {
-                throw new UserInputError(err);
-            }
-        },
+          if (!participants.every((p) => userIds.includes(p))) {
+            throw new UserInputError(
+              'Participants array must contain valid user IDs.'
+            );
+          }
 
-        addGroupUser: async (_, args, { username, userId }) => {
-            const { conversationId, participants } = args;
+          if (
+            participants.filter((p, i) => i !== participants.indexOf(p))
+              .length !== 0 ||
+            participants.includes(loggedUser.id.toString())
+          ) {
+            throw new UserInputError(
+              'Participants array must not contain duplicate IDs.'
+            );
+          }
 
-            if (!participants || participants.length === 0) {
-                throw new UserInputError("Participants field must not be empty.");
-            }
+          const group = await Conversation.create({
+            name,
+            admin: loggedUser.id,
+            type: 'group',
+            participants: [loggedUser.id, ...participants],
+          });
 
-            try {
-                const groupConversation = await Conversation.findOne({
-                    where: { id: conversationId },
-                });
+          return {
+            ...group.toJSON(),
+            adminUser: { id: loggedUser.id, username: loggedUser.username },
+          };
 
-                if (!groupConversation.admin !== userId) {
-                    throw new UserInputError('Unauthorized');
-                }
+        } catch (err) {
+          throw new UserInputError(err);
+        }
+      },
+
+      addGroupUser: async (_, args, { username, userId }) => {
+          const { conversationId, participants } = args;
+
+          if (!participants || participants.length === 0) {
+              throw new UserInputError("Participants field must not be empty.");
+          }
+
+          try {
+              const groupConversation = await Conversation.findOne({
+                  where: { id: conversationId },
+              });
+
+              if (!groupConversation.admin !== userId) {
+                  throw new UserInputError('Unauthorized');
+              }
 
 
-                const users = await User.findAll();
-                const userIds = users.map((u) => u.id.toString());
+              const users = await User.findAll();
+              const userIds = users.map((u) => u.id.toString());
 
 
-                const updatedParticipants = [
-                    ...groupConversation.participants,
-                    participants,
-                ];
+              const updatedParticipants = [
+                  ...groupConversation.participants,
+                  participants,
+              ];
 
-                if (
-                  updatedParticipants.filter(
-                    (p, i) => i !== updatedParticipants.indexOf(p)
-                  ).length !== 0 ||
-                  updatedParticipants.includes(userId)
-                ) {
-                  throw new UserInputError(
-                    "Participants array must not contain duplicate or already added users."
-                  );
-                }
+              if (
+                updatedParticipants.filter(
+                  (p, i) => i !== updatedParticipants.indexOf(p)
+                ).length !== 0 ||
+                updatedParticipants.includes(userId)
+              ) {
+                throw new UserInputError(
+                  "Participants array must not contain duplicate or already added users."
+                );
+              }
 
-                groupConversation.participants = updatedParticipants;
-                const savedConversation = await groupConversation.save();
-                return {
-                    groupId: savedConversation.id,
-                    participants: savedConversation.participants,
-                };
-            } catch (err) {
-                throw new UserInputError(err);
-            }
+              groupConversation.participants = updatedParticipants;
+              const savedConversation = await groupConversation.save();
+              return {
+                  groupId: savedConversation.id,
+                  participants: savedConversation.participants,
+              };
+          } catch (err) {
+              throw new UserInputError(err);
+          }
         },
     },
 };

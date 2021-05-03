@@ -64,11 +64,13 @@ export default function Messages() {
          variables: getMsgVariables
        });
 
+        console.log('conversation cache', conversationCache);
        if(conversationCache){
          const updatedConvoCache = [
            ...conversationCache[getMsgQueryName],
            newMessage.message
          ];
+         console.log('updated convo cache', updatedConvoCache);
          client.writeQuery({
            query: getMsgQuery,
            variables: getMsgVariables,
@@ -114,6 +116,7 @@ export default function Messages() {
   useEffect(() => {
     if (!selectedChat) return;
     if (selectedChat.chatType === "private") {
+      console.log('cargando los mensajes de la base de datos');
       getPrivateMessages({ variables: { userId: selectedChat.user.id } });
     } else if (selectedChat.chatType === "group") {
       getGroupMessages({ varialbes: {conversationId: selectedChat.group.id}});
@@ -124,16 +127,39 @@ export default function Messages() {
   useEffect(() => {
     if (!selectedChat) return;
     if (privateMessagesData && selectedChat.chatType === "private") {
+      console.log('cargando mensajes del subscriber ');
       setMessages(privateMessagesData.getPrivateMessages)
     } else if (groupData && selectedChat.chatType === "group") {
       setMessages(groupData.getGroupMessages)
     }
-  }, [selectedChat, privateMessagesData, groupData]);
+  }, [privateMessagesData]);
 
   
   //For private messages
   let selectedChatMarkup;
   if (!selectedChat) {
+    selectedChatMarkup = <small className="info-text">Select a chat</small>;
+  } else if (messagesLoading || groupMessagesLoading) {
+    selectedChatMarkup = <small className="info-text">loading messages...</small>;
+  } else if (messages) {
+    if (messages.length > 0) {
+      selectedChatMarkup = messages.map((message, index) => (
+        <Fragment key={index}>
+          <Message message={message} />
+          {index === message.length - 1 && (
+            <div className="invisible">
+              <hr className="m-0" />
+            </div>
+          )}
+        </Fragment>
+      ));
+    } else if (messages.length === 0) {
+      selectedChatMarkup = <small className="info-text"> Connected! start sending messages!</small>;
+    }
+  }
+
+  //For groups
+    if (!selectedChat) {
     selectedChatMarkup = <small className="info-text">Select a chat</small>;
   } else if (messagesLoading || groupMessagesLoading) {
     selectedChatMarkup = <small className="info-text">loading messages...</small>;

@@ -47,3 +47,12 @@ export const SEND_GROUP_MSG = gql`
   }
   ${MESSAGE_DETAILS}
 `;
+
+export const CREATE_GROUP = gql`
+  mutation createNewGroup($name: String!, $participants: [ID!]) {
+    createGroup(name: $name, participants: $participants) {
+      ...GroupDetails
+    }
+  }
+  ${GROUP_DETAILS}
+`;
