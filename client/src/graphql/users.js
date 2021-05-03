@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { MESSAGE_DETAILS } from "./messages";
 
 export const LOGIN_USER = gql`
   query login($emailOrPhone: String!, $password: String!) {
@@ -30,7 +31,6 @@ export const REGISTER_USER = gql`
   }
 `;
 
-
 export const GET_USERS = gql`
   query getUsers {
     getUsers {
@@ -38,12 +38,9 @@ export const GET_USERS = gql`
       username
       imageUrl
       latestMessage {
-        id
-        conversationId
-        senderId
-        content
-        createdAt
+        ...MessageDetails
       }
     }
   }
+  ${MESSAGE_DETAILS}
 `;

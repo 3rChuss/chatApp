@@ -17,14 +17,6 @@ const messageReducer = (state, action) => {
         ...state,
         selectedChat: action.payload,
       }
-
-    case "ADD_MESSAGE":
-      return {
-        ...state,
-        newMessage: {
-          message: action.payload.newMessage.message
-        }
-      }
       
     default:
       throw new Error(`unknown action type: ${action.type}`);

@@ -2,8 +2,7 @@ import React, { Fragment, useState } from "react";
 import { Row, Col, Button, Tab, Tabs, TabContainer, Image } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useAtuhState } from '../../context/auth';
-import {  useMessageState } from "../../context/states";
-
+import { useMessageState } from "../../context/states";
 import { useAtuhDispatch } from "../../context/auth";
 
 

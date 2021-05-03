@@ -2,7 +2,7 @@ import React from 'react';
 import ReactMarkdown from "react-markdown";
 import { useAtuhState } from '../../context/auth';
 
-export default function Message({ message }) {
+export default function Message({message}) {
   const { userId } = useAtuhState();
 
     return (

@@ -1,50 +1,108 @@
 import React, { useEffect, useState, Fragment } from 'react';
-import { Col, Form } from 'react-bootstrap';
-import { useLazyQuery, useMutation } from "@apollo/client";
+import { Col } from 'react-bootstrap';
+import { useLazyQuery } from "@apollo/client";
 import { useSubscription } from '@apollo/client';
 
-import { useMessageState, useMessageDispatch } from "../../context/states";
+import { useMessageState } from "../../context/states";
 import { useAtuhState } from '../../context/auth';
 import {
-  GET_PRIVATE_MESSAGES,
-  SEND_PRIVATE_MESG,
-} from "../../graphql/messages";
+  GET_PRIVATE_MESSAGES } from "../../graphql/messages";
 import { 
   GET_GROUP_MSGS,
-  GET_GROUPS,
-  SEND_GROUP_MSG } from "../../graphql/groups";
+  GET_GROUPS
+ } from "../../graphql/groups";
+import { GET_USERS } from '../../graphql/users';
 import { NEW_MESSAGE } from "../../graphql/subscriptions";
 
-
-
 import Message from './Message';
-
+import SendMessage from './SendMessage'
 
 export default function Messages() {
-  const messageDispatch = useMessageDispatch();
   const { selectedChat } = useMessageState();
-  const { userId } = useAtuhState
-  const [content, setContent] = useState("");
+  const { userId } = useAtuhState();
+  const [messages, setMessages] = useState("");
 
   const [ getPrivateMessages,
     { loading: messagesLoading, data: privateMessagesData },
   ] = useLazyQuery(GET_PRIVATE_MESSAGES, { onError: (err) => console.log(err), });
-
   const [ getGroupMessages,
     { data: groupData, loading: groupMessagesLoading },
   ] = useLazyQuery(GET_GROUP_MSGS, { onError: (err) => console.log(err), });
 
-  const [sendPrivateMsg, 
-    { loading: loadingPrivateMsg }
-  ] = useMutation(SEND_PRIVATE_MESG, { onError: (err) => console.log(err), });
+  //Get new messages from subscriptions
+   const { error: subscriptionError } = useSubscription(NEW_MESSAGE, {
+    onSubscriptionData:({client, subscriptionData}) => {
+      const newMessage = subscriptionData.data.newMessage;
+      let getMsgQuery,
+        getMsgVariables,
+        getMsgQueryName,
+        getLastMsgQuery,
+        getLastMsgQueryName,
+        lastMsgTargetId;
 
-  const [sendGroupMsg, 
-    { loading: loadingGroupMsg }
-    ] = useMutation(SEND_GROUP_MSG, { onError: (err) => console.log(err), });
+       if (newMessage.type === 'private'){
+         const otherUserId = newMessage.participants.filter((p) => p !== userId)[0];
+         getMsgQuery = GET_PRIVATE_MESSAGES;
+         getMsgVariables = {userId: otherUserId};
+         getMsgQueryName = 'getPrivateMessages';
+         getLastMsgQuery = GET_USERS;
+         getLastMsgQueryName = 'getUsers';
+         lastMsgTargetId = otherUserId;
+       
+       } else if ( newMessage.type === 'group') {
+        const groupConversationId = newMessage.message.conversationId;
+        getMsgQuery = GET_GROUP_MSGS;
+        getMsgVariables = { conversationId: groupConversationId };
+        getMsgQueryName = 'getGroupMessages';
+        getLastMsgQuery = GET_GROUPS;
+        getLastMsgQueryName = 'getGroups';
+        lastMsgTargetId = groupConversationId;
+       }
+
+       const conversationCache = client.readQuery({
+         query: getMsgQuery,
+         variables: getMsgVariables
+       });
+
+       if(conversationCache){
+         const updatedConvoCache = [
+           ...conversationCache[getMsgQueryName],
+           newMessage.message
+         ];
+         client.writeQuery({
+           query: getMsgQuery,
+           variables: getMsgVariables,
+           data: {
+             [getMsgQueryName]: updatedConvoCache
+           }
+         })
+       };
+
+       const lastMsgCache = client.readQuery({
+         query: getLastMsgQuery
+       });
 
 
-  //Get new message and s
-  const { error: subscriptionError, data: newMessageData } = useSubscription(NEW_MESSAGE)
+       if (lastMsgCache){
+         const updatedLastMsgCache = 
+          lastMsgCache[getLastMsgQueryName].map((l) =>
+            l.id === lastMsgTargetId
+              ? { ...l, latestMessage: newMessage.message }
+              : l
+          );
+
+
+          client.writeQuery({
+            query: getLastMsgQuery, 
+            data: {
+              [getLastMsgQueryName]: updatedLastMsgCache,
+            },
+          });
+       }
+    },
+    onError:(err) => console.log(err),
+  });
+
   useEffect(() => {
     if (subscriptionError) {
       console.log(subscriptionError)
@@ -52,70 +110,47 @@ export default function Messages() {
   }, [subscriptionError]);
 
 
-  //Get all messages and show
+  //Set messages from database at the begining
   useEffect(() => {
     if (!selectedChat) return;
-    if (selectedChat && selectedChat.chatType === "private") {
+    if (selectedChat.chatType === "private") {
       getPrivateMessages({ variables: { userId: selectedChat.user.id } });
-    } else if (selectedChat && selectedChat.chatType === "group") {
-      getGroupMessages({
-        variables: { conversationId: selectedChat.group.id },
-      });
+    } else if (selectedChat.chatType === "group") {
+      getGroupMessages({ varialbes: {conversationId: selectedChat.group.id}});
     }
   }, [selectedChat]);
 
-
-
-  //Submit new messages
-  const submitMessage = (e) => {
-    e.preventDefault();
-    if (content.trim() === "") return;
-
-    if (selectedChat.chatType === "private") {
-      sendPrivateMsg({ variables: { receiverId: selectedChat.user.id, content } });
-    } else if (selectedChat.chatType === "group") {
-      sendGroupMsg({
-        variables: { conversationId: selectedChat.group.id, content },
-      });
+  //Set new messages from subscription
+  useEffect(() => {
+    if (!selectedChat) return;
+    if (privateMessagesData && selectedChat.chatType === "private") {
+      setMessages(privateMessagesData.getPrivateMessages)
+    } else if (groupData && selectedChat.chatType === "group") {
+      setMessages(groupData.getGroupMessages)
     }
-    setContent("");
-  };
+  }, [selectedChat, privateMessagesData, groupData]);
+
   
   //For private messages
   let selectedChatMarkup;
-  if (!privateMessagesData && !groupData) {
+  if (!selectedChat) {
     selectedChatMarkup = <small className="info-text">Select a chat</small>;
-  } else if (messagesLoading) {
-    selectedChatMarkup = <small className="info-text">Loading...</small>;
-  } else if (privateMessagesData) {
-    if (privateMessagesData.getPrivateMessages.length > 0) {
-      selectedChatMarkup = privateMessagesData.getPrivateMessages.map((message, index) => (
+  } else if (messagesLoading || groupMessagesLoading) {
+    selectedChatMarkup = <small className="info-text">loading messages...</small>;
+  } else if (messages) {
+    if (messages.length > 0) {
+      selectedChatMarkup = messages.map((message, index) => (
         <Fragment key={index}>
-          <Message key={message.id} message={message} />
-          {index === privateMessagesData.getPrivateMessages.length - 1 && (
+          <Message message={message} />
+          {index === message.length - 1 && (
             <div className="invisible">
               <hr className="m-0" />
             </div>
           )}
         </Fragment>
       ));
-    } else if (privateMessagesData.getPrivateMessages.length === 0) {
+    } else if (messages.length === 0) {
       selectedChatMarkup = <small className="info-text"> Connected! start sending messages!</small>;
-    }
-  } else if (groupData) {
-    if (groupData.getGroupMessages.length > 0) {
-      selectedChatMarkup = groupData.getGroupMessages.map((message, index) => (
-        <Fragment key={index}>
-          <Message key={message.id} message={message} />
-          {index === groupData.getGroupMessages.length - 1 && (
-            <div className="invisible">
-              <hr className="m-0" />
-            </div>
-          )}
-        </Fragment>
-      ));
-    } else if (groupData.getGroupMessages.length === 0) {
-      selectedChatMarkup = <small className="info-text">Connected! start sending messages!</small>
     }
   }
 
@@ -125,25 +160,7 @@ export default function Messages() {
         {selectedChatMarkup}
       </div>
       <div>
-        <Form onSubmit={submitMessage}>
-          <Form.Group className="d-flex">
-            <Form.Control
-              type="text"
-              className="rounded-pill bg-white mt-3"
-              placeholder="Type a message..."
-              value={content}
-              onChange={(e) =>
-                selectedChat ? setContent(e.target.value) : null
-              }
-            />
-            <button
-              className="mt-3 btn rounded send-btn"
-              onClick={submitMessage}
-            >
-              {"🚀"}
-            </button>
-          </Form.Group>
-        </Form>
+        <SendMessage />
       </div>
     </Col>
   );
