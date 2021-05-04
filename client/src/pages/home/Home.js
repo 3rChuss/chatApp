@@ -30,7 +30,7 @@ export default function Home() {
     <Fragment>
       <Row className="justify-content-around bg-light">
         {username && (
-          <div className="col user-div">
+          <div className="col user-div my-2">
           <Image
             src={
               user?.imageUrl ||

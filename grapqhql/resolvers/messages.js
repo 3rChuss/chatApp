@@ -9,7 +9,7 @@ module.exports = {
     getPrivateMessages: async (_, args, context) => {
       const { userId } = args;
       try {
-        const user = await User.findOne({ where: { id: userId } });
+        const user = await User.findOne({ where: { id: parseInt(userId) } });
 
         if (!user) {
           throw new UserInputError(
@@ -146,13 +146,51 @@ module.exports = {
         throw err;
       }
     },
+    sendGroupMessage: async (_,args, {username, userId}) => {
+      const {conversationId, content} = args;
+      if(content.trim()==='') throw new UserInputError('Message content must not be empty');
+
+      try {
+        const groupConversations = await Conversation.findOne({
+          where: {id: conversationId}
+        });
+
+        if(!groupConversations || groupConversations.type !== 'group') throw new UserInputError('Invalid groud id');
+
+        if(!groupConversations.participants.includes(parseInt(userId))) {
+          throw new UserInputError('Access denied, not a member')
+        }
+
+        const newMessage = await Message.create({
+          conversationId, 
+          senderId: parseInt(userId),
+          content
+        });
+
+        pubsub.publish('NEW_MESSAGE', {
+          newMessage:{
+            message: {
+              ...newMessage.toJSON(),
+              user: {id:userId, username}
+            },
+            type: 'group',
+            participants: groupConversations.participants
+          }
+        });
+
+        return newMessage;
+
+      } catch (err) {
+        throw new UserInputError(err)
+      }
+    }
   },
   Subscription: {
     newMessage: {
       subscribe: withFilter(
         (_, __, context) => {
           if (context.username) {
-            return pubsub.asyncIterator(["NEW_MESSAGE"]);
+            return pubsub.asyncIterator(["NEW_MESSAGE"])
           }
         },
         ({ newMessage }, _, {userId}) => {
@@ -162,5 +200,10 @@ module.exports = {
         }
       ),
     },
+    // newMessage:{
+    //   subscribe: withFilter((_,__,{pubsub}) => pubsub.asyncIterator(['NEW_MESSAGE']), ({newMessage}, _, {userId}) => {
+    //     return newMessage.participants.includes(parseInt(userId));
+    //   })
+    // }
   },
 };

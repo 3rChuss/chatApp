@@ -15,7 +15,7 @@ body {
 }
 
 .user-div:hover{
-    background-color: rgba(245, 197, 197, 0.9) !important;
+    background-color: rgba(183, 183, 183, 0.9) !important;
     transition: all ease-in-out .1s;
 }
 
@@ -57,9 +57,28 @@ body {
     }
 }
 a{
-    color: rgb(171, 177, 119) !important;
+    color: rgb(0, 0, 0) !important;
     &:hover {
         color:rgba(0, 0, 0, 0.9) !important;
     }
 }
 
+.modal-body {
+    .user-div {
+
+        .group-details {
+            margin: auto 0;
+        }
+    }
+    .modal-group {
+        max-height: 300px;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+    }
+}

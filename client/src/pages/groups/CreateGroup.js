@@ -1,56 +1,49 @@
 import React, {useState} from 'react';
 import {Modal, Button, Form} from 'react-bootstrap';
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { GET_GROUPS, CREATE_GROUP } from "../../graphql/groups";
-import { GET_USERS } from '../../graphql/users';
-import { useMessageState, useMessageDispatch } from '../../context/states';
 
-export default function CreateGorup({show, closeModal}){
-     const { selectedChat } = useMessageState();
-     const dispatch = useMessageDispatch();
-     const [participants, setParticipants] = useState("");
+export default function CreateGorup({showNewGroup, closeModalNewgroup}){
      const [variables, setVariables] = useState({
           name: '',
           participants: []
-     })
-     const [showModal, setShowModal] = useState(false);
-
-
-     const { data: userData} = useQuery(GET_USERS, {
-          onError: (err) => console.log(err),
      });
+     const [errors, setErrors] = useState({});
+       
 
-     const [createNewGroup, {loading}] = useMutation(CREATE_GROUP, {
-          onError: (err) => console.log(err)
+     const [createNewGroup] = useMutation(CREATE_GROUP, {
+          onError: (err) => setErrors(err.graphQLErrors[0].extensions.errors)
      });
 
      const submitGroup = (e) => {
           e.preventDefault();
-          createNewGroup({
-               variables,
-               update: (proxy, {data}) => {
-                    const returnedData = data.createGroup;
-                    const dataCache = proxy.readQuery({
-                         query:GET_GROUPS
-                    });
 
-                    proxy.writeQuery({
-                         query: GET_GROUPS,
-                         data:{
-                              getGroups:[...dataCache.getGroups, returnedData]
-                         }
-                    });
-                    dispatch({
-                         type: "SET_SELECTED_CHAT",
-                         payload: { returnedData, chatType: "group" },
-                    })
-               }
-          })
-          closeModal();
+          if(variables.name.trim() === ""){
+               errors.name = "Name can't be empty";
+          }else if (variables.participants.length === 0){
+               errors.participants = "Did you add a member to join?"
+          } else {
+               createNewGroup({
+                    variables,
+                    update: (proxy, {data}) => {
+                         const returnedData = data.createGroup;
+                         const dataCache = proxy.readQuery({
+                              query: GET_GROUPS
+                         });
+
+                         proxy.writeQuery({
+                              query: GET_GROUPS,
+                              data:{
+                                   getGroups:[...dataCache.getGroups, returnedData]
+                              }
+                         });
+                    }
+               })
+          }
      }
 
      return (
-          <Modal show={show} animation={false} onHide={closeModal}>
+          <Modal show={showNewGroup} animation={false} onHide={closeModalNewgroup}>
                <Modal.Header closeButton>
                     <Modal.Title>Create a new group</Modal.Title>
                </Modal.Header>
@@ -68,6 +61,7 @@ export default function CreateGorup({show, closeModal}){
                                    setVariables({ ...variables, name: e.target.value })
                                    }
                               />
+                              {!variables.name && <small className="text-danger">Requiered</small>}
                          </Form.Group>
                          <Form.Group>
                               <Form.Label>
@@ -80,12 +74,16 @@ export default function CreateGorup({show, closeModal}){
                                    onChange={(e) =>
                                    setVariables({ ...variables, participants: e.target.value })
                                    }
+                                   className={errors?.participants && "border-danger"}
                               />
+                              {!variables.name && <small className="text-danger">A participant is requiered</small>}
+                              {errors.emailorphone && <small className="text-danger">{errors.emailorphone}</small>}
+                              {errors.admin && <small className="text-danger">{errors.admin}</small>}
                          </Form.Group>
                     </Form>
                </Modal.Body>
                <Modal.Footer>
-                    <Button variant="secondary" onClick={closeModal}>
+                    <Button variant="secondary" onClick={closeModalNewgroup}>
                          Close
                     </Button>
                     <Button variant="primary" onClick={submitGroup}>

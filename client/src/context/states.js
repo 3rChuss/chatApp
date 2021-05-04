@@ -17,6 +17,12 @@ const messageReducer = (state, action) => {
         ...state,
         selectedChat: action.payload,
       }
+
+    case "UPDATE_GROUP":
+      console.log(action.payload);
+      return {
+        ...state
+      }
       
     default:
       throw new Error(`unknown action type: ${action.type}`);

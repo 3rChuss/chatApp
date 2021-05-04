@@ -9,8 +9,8 @@ export default function SendMessage() {
 
      const [content, setContent] = useState("");
      const { selectedChat } = useMessageState();
-     const [sendPrivateMsg,{ loading: loadingPrivateMsg }] = useMutation(SEND_PRIVATE_MESG, { onError: (err) => console.log(err), });
-     const [sendGroupMsg, { loading: loadingGroupMsg }] = useMutation(SEND_GROUP_MSG, { onError: (err) => console.log(err), });
+     const [sendPrivateMsg] = useMutation(SEND_PRIVATE_MESG, { onError: (err) => console.log(err), });
+     const [sendGroupMsg] = useMutation(SEND_GROUP_MSG, { onError: (err) => console.log(err), });
 
      
      //Submit new messages

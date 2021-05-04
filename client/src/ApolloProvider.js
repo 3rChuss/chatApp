@@ -35,6 +35,7 @@ const wsLink = new WebSocketLink({
   uri: "ws://localhost:4000/graphql",
   options: {
     reconnect: true,
+    timemout: 30000,
     connectionParams: {
       username: localStorage.getItem("username"),
       userId: localStorage.getItem("userId"),

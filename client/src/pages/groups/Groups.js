@@ -6,25 +6,31 @@ import { GET_GROUPS } from '../../graphql/groups';
 
 import { useMessageDispatch, useMessageState } from "../../context/states";
 import CreateGroup from './CreateGroup';
-
+import GroupInfo from './GroupInfo';
 
 export default function Groups() {
     
     const dispatch = useMessageDispatch();
     const { selectedChat } = useMessageState();
-    const [show,setShow] = useState(false);
+    const [showNewGroup,setShowNewGroup] = useState(false);
+    const [showDetailsGroup, setShowDetailsGroup] = useState(false);
+    const [errors, setErrors] = useState({});
+
+
+    const closeModalNewgroup = () => setShowNewGroup(!showNewGroup);
+    const closeModalDetails = () => setShowDetailsGroup(!showDetailsGroup);
     
     const { data: groupData, loading } = useQuery(GET_GROUPS, {
-        onError: (err) => console.log(err),
+        onError: (err) => setErrors(err.graphQLErrors[0].extensions.errors),
     });
   
-    let usersMarkup;
+    let groupsMarkUp;
     if (!groupData || loading) {
-      usersMarkup = <p>Loading...</p>;
+      groupsMarkUp = <p>Loading...</p>;
     } else if (groupData.getGroups.length === 0) {
-      usersMarkup = <p>Not users have joined</p>;
+      groupsMarkUp = <p className="p-2">Start creating a new group</p>;
     } else if (groupData.getGroups.length > 0) {
-      usersMarkup = groupData.getGroups.map((group) => {
+      groupsMarkUp = groupData.getGroups.map((group) => {
         return (
           <div
             role="button"
@@ -37,24 +43,21 @@ export default function Groups() {
             }
           >
             <Card
-              className={`my-2 bg-light user-div 
-                        ${selectedChat?.chatType === 'group' && selectedChat.group?.id === group.id ? "bg-white" : " "}`}
+              className={`bg-light user-div border-0
+                        ${selectedChat?.chatType === 'group' && selectedChat?.group.id === group.id ? "bg-white" : " "}`}
             >
-              <Card.Body className="text-success m-0 p-2">
-                <div className="d-block">
-                  <a role="button" className="dark float-right">
-                    {"👁‍🗨"}
+              <Card.Body className="m-0 border-0">
+                <div className="d-block ">
+                  <a role="button" className="dark float-right" onClick={closeModalDetails}>
+                    {"🕵️‍♀️"}
                   </a>
                   {group.name}
                 </div>
                 <small className="d-block">
-                  {group.latestMessage &&
-                  group.latestMessage.to === group.admin ? (
-                    `${group.latestMessage.content} < you`
-                  ) : group.latestMessage &&
-                    group.latestMessage.to !== group.admin ? (
-                    `${group.latestMessage.content} < ${group.latestMessage.to}`
-                  ) : (
+                  {group.latestMessage && (
+                    group.latestMessage.content
+                  )}
+                  {!group.latestMessage && (
                     <p>Click to send a message</p>
                   )}
                 </small>
@@ -66,15 +69,19 @@ export default function Groups() {
     }
 
 
-    const closeModal = () => setShow(!show);
     return (
       <Col className="px-0">
-        {usersMarkup}
-        <Button onClick={closeModal}>
-          Add Group
-        </Button>
-        {show && (
-          <CreateGroup show={show} closeModal={closeModal}/>
+        {groupsMarkUp}
+        <Col className="px-0">
+          <Button className="w-100 btn-sm btn-outline-dark" variant="light" onClick={closeModalNewgroup}>
+            ➕ New Group
+          </Button>
+        </Col>
+        {showNewGroup && (
+          <CreateGroup showNewGroup={showNewGroup} closeModalNewgroup={closeModalNewgroup} />
+        )}
+        {showDetailsGroup && (
+          <GroupInfo showDetailsGroup={showDetailsGroup} closeModalDetails={closeModalDetails} />
         )}
       </Col>
     );

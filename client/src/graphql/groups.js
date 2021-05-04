@@ -40,8 +40,8 @@ export const GET_GROUP_MSGS = gql`
 
 
 export const SEND_GROUP_MSG = gql`
-  mutation sendGroupMsg($conversationId: ID!, $body: String!) {
-    sendGroupMessage(conversationId: $conversationId, body: $body) {
+  mutation sendGroupMsg($conversationId: ID!, $content: String!) {
+    sendGroupMessage(conversationId: $conversationId, content: $content) {
       ...MessageDetails
     }
   }
@@ -49,10 +49,19 @@ export const SEND_GROUP_MSG = gql`
 `;
 
 export const CREATE_GROUP = gql`
-  mutation createNewGroup($name: String!, $participants: [ID!]) {
+  mutation createNewGroup($name: String!, $participants: String!) {
     createGroup(name: $name, participants: $participants) {
       ...GroupDetails
     }
   }
   ${GROUP_DETAILS}
+`;
+
+export const ADD_GROUP_USER = gql`
+  mutation addUser($conversationId: ID!, $participants: String!) {
+    addGroupUser(conversationId: $conversationId, participants: $participants) {
+      groupId
+      participants
+    }
+  }
 `;

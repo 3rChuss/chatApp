@@ -15,12 +15,16 @@ export default function RegisterForm(props) {
   });
 
   const [errors, setErrors] = useState({});
+  const [sequeErr, setSequeErr] = useState({});
 
   const [register, { loading }] = useMutation(REGISTER_USER, {
     update: (_, __) => props.history.push('/login'),
-    onError: (err) => setErrors(err.graphQLErrors),
+    onError: (err) => {
+      setSequeErr(err);
+      setErrors(err.graphQLErrors[0].extensions.errors)}
   });
 
+console.log(sequeErr);
   const submitRegisterForm = (e) => {
     e.preventDefault();
     register({ variables });
@@ -42,7 +46,9 @@ export default function RegisterForm(props) {
                 onChange={(e) =>
                   setVariables({ ...variables, email: e.target.value })
                 }
+                className={errors?.email || sequeErr.message ? "border-danger" : ""}
               />
+                <small>{sequeErr.message}</small>
             </Form.Group>
             <Form.Group>
               <Form.Label>Phone Number</Form.Label>
@@ -53,7 +59,9 @@ export default function RegisterForm(props) {
                 onChange={(e) =>
                   setVariables({ ...variables, phone: e.target.value })
                 }
+                className={errors?.phone || sequeErr.message ? "border-danger" : ""}
               />
+              <small>{sequeErr.message}</small>
             </Form.Group>
             <Form.Group>
               <Form.Label>Username</Form.Label>
@@ -64,6 +72,7 @@ export default function RegisterForm(props) {
                 onChange={(e) =>
                   setVariables({ ...variables, username: e.target.value })
                 }
+                className={errors?.username && "border-danger"}
               />
             </Form.Group>
             <Form.Group>
@@ -75,6 +84,7 @@ export default function RegisterForm(props) {
                 onChange={(e) =>
                   setVariables({ ...variables, password: e.target.value })
                 }
+                className={errors?.password && "border-danger"}
               />
             </Form.Group>
             <Form.Group>
@@ -89,6 +99,7 @@ export default function RegisterForm(props) {
                     confirmPassword: e.target.value,
                   })
                 }
+                className={errors?.confirmPassword && "border-danger"}
               />
             </Form.Group>
             <div className="text-center">

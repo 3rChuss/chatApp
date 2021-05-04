@@ -10,6 +10,9 @@ const contextMiddleware = require("./Middleware/context");
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  subscriptions: {
+    path: '/graphql'
+  },
   context: contextMiddleware
 });
 

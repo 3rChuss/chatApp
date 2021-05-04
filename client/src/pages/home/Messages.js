@@ -60,25 +60,26 @@ export default function Messages() {
        }
 
        const conversationCache = client.readQuery({
-         query: getMsgQuery,
-         variables: getMsgVariables
-       });
+        query: getMsgQuery,
+        variables: getMsgVariables,
+      });
 
-        console.log('conversation cache', conversationCache);
-       if(conversationCache){
-         const updatedConvoCache = [
-           ...conversationCache[getMsgQueryName],
-           newMessage.message
-         ];
-         console.log('updated convo cache', updatedConvoCache);
-         client.writeQuery({
-           query: getMsgQuery,
-           variables: getMsgVariables,
-           data: {
-             [getMsgQueryName]: updatedConvoCache
-           }
-         })
-       };
+      if (conversationCache) {
+        const updatedConvoCache = [
+          newMessage.message,
+          ...conversationCache[getMsgQueryName],
+        ];
+
+
+        client.writeQuery({
+          query: getMsgQuery,
+          variables: getMsgVariables,
+          data: {
+            [getMsgQueryName]: updatedConvoCache,
+          },
+        });
+
+      }
 
        const lastMsgCache = client.readQuery({
          query: getLastMsgQuery
@@ -92,7 +93,6 @@ export default function Messages() {
               ? { ...l, latestMessage: newMessage.message }
               : l
           );
-
 
           client.writeQuery({
             query: getLastMsgQuery, 
@@ -112,6 +112,7 @@ export default function Messages() {
   }, [subscriptionError]);
 
 
+ 
   //Set messages from database at the begining
   useEffect(() => {
     if (!selectedChat) return;
@@ -119,8 +120,9 @@ export default function Messages() {
       console.log('cargando los mensajes de la base de datos');
       getPrivateMessages({ variables: { userId: selectedChat.user.id } });
     } else if (selectedChat.chatType === "group") {
-      getGroupMessages({ varialbes: {conversationId: selectedChat.group.id}});
+      getGroupMessages({ variables: {conversationId: selectedChat.group.id}});
     }
+    // eslint-disable-next-line
   }, [selectedChat]);
 
   //Set new messages from subscription
@@ -128,11 +130,13 @@ export default function Messages() {
     if (!selectedChat) return;
     if (privateMessagesData && selectedChat.chatType === "private") {
       console.log('cargando mensajes del subscriber ');
-      setMessages(privateMessagesData.getPrivateMessages)
+      setMessages(privateMessagesData.getPrivateMessages);
     } else if (groupData && selectedChat.chatType === "group") {
-      setMessages(groupData.getGroupMessages)
+      console.log('cargando mensajes del subscriber grupo ');
+      setMessages(groupData.getGroupMessages);
     }
-  }, [privateMessagesData]);
+    // eslint-disable-next-line
+  }, [selectedChat, privateMessagesData, groupData]);
 
   
   //For private messages
@@ -179,6 +183,7 @@ export default function Messages() {
       selectedChatMarkup = <small className="info-text"> Connected! start sending messages!</small>;
     }
   }
+
 
   return (
     <Col xs={9} sm={8} className="pl-0">

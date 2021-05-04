@@ -6,7 +6,6 @@ module.exports = gql`
     ADD
     DELTE
   }
-
   type User {
     id: ID!
     username: String!
@@ -59,6 +58,7 @@ module.exports = gql`
 
     getPrivateMessages(userId: ID!): [Message]!
     getGroupMessages(conversationId: ID!): [Message]!
+    getImageGroup(groupId: ID!) : Group!
   }
 
   type Mutation {
@@ -73,11 +73,8 @@ module.exports = gql`
     sendPrivateMessage(receiverId: ID!, content: String!): Message!
     sendGroupMessage(conversationId: ID!, content: String!): Message!
 
-    createGroup(name: String!, participants: [ID!]): Group!
-    addGroupUser(
-      conversationId: String!
-      participants: [ID]!
-    ): GroupParticipants!
+    createGroup(name: String!, participants: String!): Group!
+    addGroupUser(conversationId: ID!, participants: String!): GroupParticipants!
   }
   type Subscription {
     newMessage: subMessage!

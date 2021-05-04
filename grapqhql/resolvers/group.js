@@ -69,60 +69,69 @@ module.exports = {
     Mutation: {
       createGroup: async (_, args, { username, userId }) => {
         const { name, participants } = args;
-        console.log(name, participants);
+        let errors = {};
 
-        if (name.trim() === '') {
-          throw new UserInputError('Name field must not be empty.');
-        }
-
-        if (name.length > 30) {
-          throw new UserInputError(
-            'Title character length must not be more than 30.'
-          );
+        if (!/\S+@\S+\.\S+/.test(participants) && !/^\d+$/.test(participants)){
+            errors.emailorphone = "Phone or email incorrect";
         }
 
         try {
-          const users = await User.findAll();
-          const userIds = users.map((u) => u.id.toString());
+          const user = await User.findOne({
+                where: {
+                    [Op.or]: {
+                        email: {
+                            [Op.like]: participants,
+                        },
+                        phone: {
+                            [Op.like]: participants,
+                        },
+                    },
+                },
+            });
 
-          if (!participants.every((p) => userIds.includes(p))) {
-            throw new UserInputError(
-              'Participants array must contain valid user IDs.'
-            );
-          }
+            if (!user) {
+                error.user = "User not found";
+            }
 
-          if (
-            participants.filter((p, i) => i !== participants.indexOf(p))
-              .length !== 0 ||
-            participants.includes(loggedUser.id.toString())
-          ) {
-            throw new UserInputError(
-              'Participants array must not contain duplicate IDs.'
-            );
-          }
+            if (user.id === parseInt(userId)){
+              errors.admin = 'You are already the admin';
+            }
 
-          const group = await Conversation.create({
-            name,
-            admin: loggedUser.id,
-            type: 'group',
-            participants: [loggedUser.id, ...participants],
-          });
 
-          return {
-            ...group.toJSON(),
-            adminUser: { id: loggedUser.id, username: loggedUser.username },
-          };
+            if (Object.keys(errors).length > 0) {
+                  throw errors;
+                }
 
-        } catch (err) {
-          throw new UserInputError(err);
-        }
+            const group = await Conversation.create({
+              name,
+              admin: parseInt(userId),
+              type: 'group',
+              participants: [parseInt(userId), user.id],
+            });
+
+            return {
+              ...group.toJSON(),
+              adminUser: { id: userId, username },
+            };
+
+          } catch (err) {
+                if (err.name === "SequelizeUniqueConstraintError") {
+                    throw new UserInputError('User already taken');
+                }
+                if (err.name === "SequelizeValidationError") {
+                    err.errors.forEach((e) => (errors[e.path] = e));
+                }
+                throw new UserInputError("There are errors (inputs)", {
+                    errors,
+                });
+            }
       },
-
       addGroupUser: async (_, args, { username, userId }) => {
           const { conversationId, participants } = args;
+          let errors = {};
 
-          if (!participants || participants.length === 0) {
-              throw new UserInputError("Participants field must not be empty.");
+          if (participants === '') {
+              errors.participants = "Participants must not be empty.";
           }
 
           try {
@@ -130,40 +139,81 @@ module.exports = {
                   where: { id: conversationId },
               });
 
-              if (!groupConversation.admin !== userId) {
-                  throw new UserInputError('Unauthorized');
+              if (groupConversation.admin !== parseInt(userId)) {
+                  errors.notAdmin = 'Unauthorized';
+              }
+
+              const user = await User.findOne({
+                  where: {
+                    [Op.or]: {
+                      email: {
+                          [Op.like]: participants,
+                      },
+                      phone: {
+                          [Op.like]: participants,
+                      },
+                    },
+                  },
+                });
+
+              if (!user) {
+                errors.user = `User: ${participants} not found`;
+              }
+
+              const participantsIn = groupConversation.participants.filter((p) => p === user.id);
+              const isAlreadyIn = participantsIn.map((p) => p === userId);
+
+              if (participantsIn.length !== 0){
+                errors.joined = 'Already joined';
               }
 
 
-              const users = await User.findAll();
-              const userIds = users.map((u) => u.id.toString());
-
+              if (Object.keys(errors).length > 0) {
+                    throw errors;
+                }
 
               const updatedParticipants = [
                   ...groupConversation.participants,
-                  participants,
+                  user.id,
               ];
 
-              if (
-                updatedParticipants.filter(
-                  (p, i) => i !== updatedParticipants.indexOf(p)
-                ).length !== 0 ||
-                updatedParticipants.includes(userId)
-              ) {
-                throw new UserInputError(
-                  "Participants array must not contain duplicate or already added users."
-                );
-              }
-
               groupConversation.participants = updatedParticipants;
+              
               const savedConversation = await groupConversation.save();
               return {
                   groupId: savedConversation.id,
                   participants: savedConversation.participants,
               };
           } catch (err) {
-              throw new UserInputError(err);
-          }
+                if (err.name === "SequelizeUniqueConstraintError") {
+                    throw new UserInputError('User already taken');
+                }
+                if (err.name === "SequelizeValidationError") {
+                    err.errors.forEach((e) => (errors[e.path] = e));
+                }
+                throw new UserInputError("There are errors (inputs)", {
+                    errors,
+                });
+            }
         },
+      // addImageGroup: async (_, args, {username, userId}) => {
+      //   const {groupId, url} = args;
+
+      //   const group = Conversation.build({
+      //     where: {conversationId: groupId}
+      //   });
+
+      //   if(!group){
+      //     throw new UserInputError('Group ID not found');
+      //   }
+      //   if(url.trim()=== "") {
+      //     throw new UserInputError('Url must not be empty')
+      //   }
+
+      //   group.imageUrl = url;
+      //   const groupUdated = await group.save();
+      //   return groupUdated;
+
+      // }
     },
 };

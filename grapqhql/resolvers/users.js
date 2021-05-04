@@ -149,10 +149,10 @@ module.exports = {
                 return user;
             } catch (err) {
                 if (err.name === "SequelizeUniqueConstraintError") {
-                    throw new UserInputError(err.message);
+                    throw new UserInputError('User already taken');
                 }
                 if (err.name === "SequelizeValidationError") {
-                    err.errors.forEach((e) => (errors[e.path] = e.message));
+                    err.errors.forEach((e) => (errors[e.path] = e));
                 }
                 throw new UserInputError("There are errors (inputs)", {
                     errors,
