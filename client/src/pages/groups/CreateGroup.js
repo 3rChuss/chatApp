@@ -15,6 +15,9 @@ export default function CreateGorup({showNewGroup, closeModalNewgroup}){
           onError: (err) => setErrors(err.graphQLErrors[0].extensions.errors)
      });
 
+     console.log(errors);
+
+
      const submitGroup = (e) => {
           e.preventDefault();
 
@@ -31,15 +34,19 @@ export default function CreateGorup({showNewGroup, closeModalNewgroup}){
                               query: GET_GROUPS
                          });
 
+                         if(returnedData) setErrors({});
+
                          proxy.writeQuery({
                               query: GET_GROUPS,
                               data:{
                                    getGroups:[...dataCache.getGroups, returnedData]
                               }
                          });
-                    }
+                         closeModalNewgroup();
+                    }, 
                })
           }
+
      }
 
      return (
@@ -79,6 +86,7 @@ export default function CreateGorup({showNewGroup, closeModalNewgroup}){
                               {!variables.name && <small className="text-danger">A participant is requiered</small>}
                               {errors.emailorphone && <small className="text-danger">{errors.emailorphone}</small>}
                               {errors.admin && <small className="text-danger">{errors.admin}</small>}
+                              {errors.user && ( <small className="text-danger">{errors.user}</small>)}
                          </Form.Group>
                     </Form>
                </Modal.Body>

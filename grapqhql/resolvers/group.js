@@ -74,7 +74,6 @@ module.exports = {
         if (!/\S+@\S+\.\S+/.test(participants) && !/^\d+$/.test(participants)){
             errors.emailorphone = "Phone or email incorrect";
         }
-
         try {
           const user = await User.findOne({
                 where: {
@@ -89,8 +88,8 @@ module.exports = {
                 },
             });
 
-            if (!user) {
-                error.user = "User not found";
+            if (!user || user === null) {
+                errors.user = "User not found";
             }
 
             if (user.id === parseInt(userId)){
@@ -161,7 +160,6 @@ module.exports = {
               }
 
               const participantsIn = groupConversation.participants.filter((p) => p === user.id);
-              const isAlreadyIn = participantsIn.map((p) => p === userId);
 
               if (participantsIn.length !== 0){
                 errors.joined = 'Already joined';

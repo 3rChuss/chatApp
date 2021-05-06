@@ -11,9 +11,11 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   subscriptions: {
-    path: '/graphql'
+    path: '/graphql',
+    url: 'http://localhost:4000/graphql'
   },
-  context: contextMiddleware
+  context: contextMiddleware,
+  debug: true
 });
 
 server.listen().then(({ url }) => {

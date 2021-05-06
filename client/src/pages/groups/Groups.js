@@ -21,7 +21,7 @@ export default function Groups() {
     const closeModalDetails = () => setShowDetailsGroup(!showDetailsGroup);
     
     const { data: groupData, loading } = useQuery(GET_GROUPS, {
-        onError: (err) => setErrors(err.graphQLErrors[0].extensions.errors),
+        onError: (err) => setErrors(err.graphQLErrors[0]?.extensions.errors),
     });
   
     let groupsMarkUp;

@@ -32,7 +32,6 @@ export default function Messages() {
    const { error: subscriptionError } = useSubscription(NEW_MESSAGE, {
     onSubscriptionData:({client, subscriptionData}) => {
       const newMessage = subscriptionData.data.newMessage;
-      console.log(subscriptionData.data);
       let getMsgQuery,
         getMsgVariables,
         getMsgQueryName,
@@ -42,7 +41,6 @@ export default function Messages() {
 
        if (newMessage.type === 'private'){
          const otherUserId = newMessage.participants.filter((p) => p !== userId)[0];
-         console.log(newMessage);
          getMsgQuery = GET_PRIVATE_MESSAGES;
          getMsgVariables = { userId: otherUserId};
          getMsgQueryName = 'getPrivateMessages';
@@ -64,8 +62,6 @@ export default function Messages() {
         query: getMsgQuery,
         variables: getMsgVariables,
       });
-
-      console.log('conversation cache', conversationCache);
 
       if (conversationCache) {
         const updatedConvoCache = [
@@ -121,10 +117,8 @@ export default function Messages() {
   useEffect(() => {
     if (!selectedChat) return;
     if (selectedChat.chatType === "private") {
-      console.log('cargando los mensajes de la base de datos PRIVADOS');
       getPrivateMessages({ variables: { userId: selectedChat.user.id } });
     } else if (selectedChat.chatType === "group") {
-      console.log('cargando los mensajes de la base de datos GRUPO');
       getGroupMessages({ variables: {conversationId: selectedChat.group.id}});
     }
     // eslint-disable-next-line
@@ -135,16 +129,13 @@ export default function Messages() {
   useEffect(() => {
     if (!selectedChat) return;
     if (privateMessagesData && selectedChat.chatType === "private") {
-      console.log('cargando mensajes del subscriber privado ');
       setMessages(privateMessagesData.getPrivateMessages);
     } else if (groupData && selectedChat.chatType === "group") {
-      console.log('cargando mensajes del subscriber grupo ');
       setMessages(groupData.getGroupMessages);
     }
     // eslint-disable-next-line
   }, [selectedChat ,privateMessagesData, groupData]);
 
-  console.log('mensajes updates? ', messages);
 
   
   //For private messages

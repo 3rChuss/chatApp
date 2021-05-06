@@ -7,14 +7,12 @@ const MessageDispatchContext = createContext();
 const messageReducer = (state, action) => {
   switch (action.type) {
     case "SET_USERS":
-      console.log('state SET USER')
       return {
         ...state,
         users: action.payload,
       };
 
     case "SET_SELECTED_CHAT":
-      console.log('state SELECTEDCHAT')
       return {
         ...state,
         selectedChat: action.payload,

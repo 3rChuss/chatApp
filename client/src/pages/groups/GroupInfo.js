@@ -60,6 +60,8 @@ export default function GroupInfo({showDetailsGroup, closeModalDetails}){
           })
      }
 
+     console.log(errors);
+
      return (
           <Modal show={showDetailsGroup} animation={false} onHide={closeModalDetails}>
                <Modal.Header closeButton>
@@ -98,6 +100,7 @@ export default function GroupInfo({showDetailsGroup, closeModalDetails}){
                                    className={errors?.joined && "border-danger"}
                               />
                               {errors.joined && <small className="text-danger">{errors.joined}</small>}
+                              {errors.user && <small className="text-danger">{errors.user}</small>}
                          </Form.Group>
                     </Form>
                     )}
