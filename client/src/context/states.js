@@ -8,21 +8,16 @@ const messageReducer = (state, action) => {
   switch (action.type) {
     case "SET_USERS":
       return {
-        ...state,
+        // ...state,
         users: action.payload,
       };
 
     case "SET_SELECTED_CHAT":
       return {
-        ...state,
+        // ...state,
         selectedChat: action.payload,
       }
 
-    case "UPDATE_GROUP":
-      console.log(action.payload)
-      return {
-        ...state
-      }
       
     default:
       throw new Error(`unknown action type: ${action.type}`);

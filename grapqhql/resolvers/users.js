@@ -78,7 +78,7 @@ module.exports = {
                     where: {
                         [Op.or]: {
                             email: {
-                                [Op.like]: emailOrPhone,
+                                [Op.like]: emailOrPhone.toLowerCase(),
                             },
                             phone: {
                                 [Op.like]: emailOrPhone,
@@ -139,8 +139,8 @@ module.exports = {
 
                 // Create user
                 const user = await User.create({
-                    username,
-                    email,
+                    username: username.toLowerCase(),
+                    email: email.toLowerCase(),
                     phone,
                     password,
                 });

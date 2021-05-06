@@ -186,24 +186,24 @@ module.exports = {
     }
   },
   Subscription: {
-    newMessage: {
-      subscribe: withFilter(
-        (_, __, context) => {
-          if (context.username) {
-            return pubsub.asyncIterator(["NEW_MESSAGE"])
-          }
-        },
-        ({ newMessage }, _, {userId}) => {
-          return (
-            newMessage.participants.includes(parseInt(userId))
-          );
-        }
-      ),
-    },
-    // newMessage:{
-    //   subscribe: withFilter((_,__,{pubsub}) => pubsub.asyncIterator(['NEW_MESSAGE']), ({newMessage}, _, {userId}) => {
-    //     return newMessage.participants.includes(parseInt(userId));
-    //   })
-    // }
+    // newMessage: {
+    //   subscribe: withFilter(
+    //     (_, __, context) => {
+    //       if (context.username) {
+    //         return pubsub.asyncIterator(["NEW_MESSAGE"])
+    //       }
+    //     },
+    //     ({ newMessage }, _, {userId}) => {
+    //       return (
+    //         newMessage.participants.includes(parseInt(userId))
+    //       );
+    //     }
+    //   ),
+    // },
+    newMessage:{
+      subscribe: withFilter((_,__,context) => pubsub.asyncIterator(['NEW_MESSAGE']), ({newMessage}, _, {userId}) => {
+        return newMessage.participants.includes(parseInt(userId));
+      })
+    }
   },
 };

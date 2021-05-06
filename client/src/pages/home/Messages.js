@@ -111,7 +111,6 @@ export default function Messages() {
     }
   }, [subscriptionError]);
 
-
  
   //Set messages from database at the begining
   useEffect(() => {
@@ -134,8 +133,7 @@ export default function Messages() {
       setMessages(groupData.getGroupMessages);
     }
     // eslint-disable-next-line
-  }, [selectedChat ,privateMessagesData, groupData]);
-
+  }, [selectedChat, privateMessagesData, groupData ]);
 
   
   //For private messages

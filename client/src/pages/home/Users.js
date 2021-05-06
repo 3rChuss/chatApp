@@ -9,21 +9,20 @@ export default function Users() {
   const dispatch = useMessageDispatch();
   const { users, selectedChat } = useMessageState();
 
-  const { loading } = useQuery(GET_USERS, {
+  const { loading,data: usersData } = useQuery(GET_USERS, {
     onCompleted: (data) => {
       dispatch({ type: "SET_USERS", payload: data.getUsers })
     },
     onError: (err) => console.log(err),
   });
 
-
   let usersMarkup;
-  if (!users || loading) {
+  if (!usersData || loading) {
     usersMarkup = <p>Loading...</p>;
-  } else if (users.length === 0) {
-    usersMarkup = <p>Not users have joined</p>;
-  } else if (users.length > 0) {
-    usersMarkup = users.map((user) => {
+  } else if (usersData.getUsers.length === 0) {
+      usersMarkup = <p className="p-2">Yor're the fisrt user!</p>;
+  } else if (usersData.getUsers.length > 0) {
+    usersMarkup = usersData.getUsers.map((user) => {
       return (
         <div
           role="button"

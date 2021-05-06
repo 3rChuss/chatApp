@@ -28,7 +28,7 @@ export default function SendMessage() {
      };
 
      return (
-          <Form onSubmit={submitMessage}>
+          <Form onSubmit={(e) => submitMessage(e)}>
           <Form.Group className="d-flex">
             <Form.Control
               type="text"
@@ -41,7 +41,7 @@ export default function SendMessage() {
             />
             <button
               className="mt-3 btn rounded send-btn"
-              onClick={submitMessage}
+              onClick={(e) => submitMessage(e)}
             >
               {"🚀"}
             </button>
