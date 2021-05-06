@@ -5,8 +5,7 @@ import { useSubscription } from '@apollo/client';
 
 import { useMessageState } from "../../context/states";
 import { useAtuhState } from '../../context/auth';
-import {
-  GET_PRIVATE_MESSAGES } from "../../graphql/messages";
+import { GET_PRIVATE_MESSAGES } from "../../graphql/messages";
 import { 
   GET_GROUP_MSGS,
   GET_GROUPS
@@ -23,7 +22,7 @@ export default function Messages() {
   const [messages, setMessages] = useState("");
 
   const [ getPrivateMessages,
-    { loading: messagesLoading, data: privateMessagesData },
+    { data: privateMessagesData, loading: messagesLoading,  },
   ] = useLazyQuery(GET_PRIVATE_MESSAGES, { onError: (err) => console.log(err), });
   const [ getGroupMessages,
     { data: groupData, loading: groupMessagesLoading },
@@ -33,6 +32,7 @@ export default function Messages() {
    const { error: subscriptionError } = useSubscription(NEW_MESSAGE, {
     onSubscriptionData:({client, subscriptionData}) => {
       const newMessage = subscriptionData.data.newMessage;
+      console.log(subscriptionData.data);
       let getMsgQuery,
         getMsgVariables,
         getMsgQueryName,
@@ -42,8 +42,9 @@ export default function Messages() {
 
        if (newMessage.type === 'private'){
          const otherUserId = newMessage.participants.filter((p) => p !== userId)[0];
+         console.log(newMessage);
          getMsgQuery = GET_PRIVATE_MESSAGES;
-         getMsgVariables = {userId: otherUserId};
+         getMsgVariables = { userId: otherUserId};
          getMsgQueryName = 'getPrivateMessages';
          getLastMsgQuery = GET_USERS;
          getLastMsgQueryName = 'getUsers';
@@ -63,6 +64,8 @@ export default function Messages() {
         query: getMsgQuery,
         variables: getMsgVariables,
       });
+
+      console.log('conversation cache', conversationCache);
 
       if (conversationCache) {
         const updatedConvoCache = [
@@ -88,11 +91,12 @@ export default function Messages() {
 
        if (lastMsgCache){
          const updatedLastMsgCache = 
-          lastMsgCache[getLastMsgQueryName].map((l) =>
+          lastMsgCache[getLastMsgQueryName].map((l) => {
+            return (
             l.id === lastMsgTargetId
               ? { ...l, latestMessage: newMessage.message }
-              : l
-          );
+              : l)
+          });
 
           client.writeQuery({
             query: getLastMsgQuery, 
@@ -117,26 +121,30 @@ export default function Messages() {
   useEffect(() => {
     if (!selectedChat) return;
     if (selectedChat.chatType === "private") {
-      console.log('cargando los mensajes de la base de datos');
+      console.log('cargando los mensajes de la base de datos PRIVADOS');
       getPrivateMessages({ variables: { userId: selectedChat.user.id } });
     } else if (selectedChat.chatType === "group") {
+      console.log('cargando los mensajes de la base de datos GRUPO');
       getGroupMessages({ variables: {conversationId: selectedChat.group.id}});
     }
     // eslint-disable-next-line
   }, [selectedChat]);
 
+
   //Set new messages from subscription
   useEffect(() => {
     if (!selectedChat) return;
     if (privateMessagesData && selectedChat.chatType === "private") {
-      console.log('cargando mensajes del subscriber ');
+      console.log('cargando mensajes del subscriber privado ');
       setMessages(privateMessagesData.getPrivateMessages);
     } else if (groupData && selectedChat.chatType === "group") {
       console.log('cargando mensajes del subscriber grupo ');
       setMessages(groupData.getGroupMessages);
     }
     // eslint-disable-next-line
-  }, [selectedChat, privateMessagesData, groupData]);
+  }, [selectedChat ,privateMessagesData, groupData]);
+
+  console.log('mensajes updates? ', messages);
 
   
   //For private messages
@@ -161,6 +169,7 @@ export default function Messages() {
       selectedChatMarkup = <small className="info-text"> Connected! start sending messages!</small>;
     }
   }
+
 
   //For groups
     if (!selectedChat) {

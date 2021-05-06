@@ -1,7 +1,8 @@
 import React from 'react'
-import { useQuery } from "@apollo/client";
+import { useQuery, useLazyQuery } from "@apollo/client";
 import { Col, Image } from "react-bootstrap";
 import { GET_USERS } from '../../graphql/users';
+import { GET_PRIVATE_MESSAGES } from '../../graphql/messages';
 import { useMessageDispatch, useMessageState } from "../../context/states";
 
 
@@ -15,6 +16,11 @@ export default function Users() {
     },
     onError: (err) => console.log(err),
   });
+
+  const [ getPrivateMessages,
+    { loading: messagesLoading, data: privateMessagesData },
+  ] = useLazyQuery(GET_PRIVATE_MESSAGES, { onError: (err) => console.log(err), });
+
 
   let usersMarkup;
   if (!users || loading) {

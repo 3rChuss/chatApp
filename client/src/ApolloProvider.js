@@ -12,7 +12,7 @@ import { WebSocketLink } from "@apollo/client/link/ws";
 import { setContext } from "@apollo/client/link/context";
 
 let httpLink = createHttpLink({
-  uri: "http://localhost:4000",
+  uri: "http://localhost:4000/",
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -29,16 +29,17 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-httpLink = authLink.concat(httpLink);
 
 const wsLink = new WebSocketLink({
   uri: "ws://localhost:4000/graphql",
   options: {
     reconnect: true,
     timemout: 30000,
-    connectionParams: {
-      username: localStorage.getItem("username"),
-      userId: localStorage.getItem("userId"),
+    connectionParams: () => {
+      return {
+        username: localStorage.getItem("username"),
+        userId: localStorage.getItem("userId"),
+      }
     },
   },
 });
@@ -52,24 +53,12 @@ const splitLink = split(
     );
   },
   wsLink,
-  httpLink
+  authLink.concat(httpLink)
 );
 
 const client = new ApolloClient({
   link: splitLink,
-  cache: new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          getGroups: {
-            merge(existing, incoming) {
-              return incoming;
-            }
-          }
-        }
-      }
-    }
-  }),
+  cache: new InMemoryCache(),
 });
 
 export default function ApolloProvider(props) {
